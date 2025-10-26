@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Container, Row, Col, Alert, Spinner, Form } from 'react-bootstrap'
+import { Container, Alert, Spinner, Form } from 'react-bootstrap'
 import type { PvlcMedFormula } from '../types'
 import { apiService } from '../services/api'
 import Breadcrumbs from '../components/Breadcrumbs'
@@ -52,6 +52,11 @@ const PvlcPatientsPage: React.FC = () => {
 		setSearchTerm(e.target.value)
 	}
 
+	const handleSearchSubmit = (e: React.FormEvent) => {
+		e.preventDefault()
+		applyFilters()
+	}
+
 	if (loading) {
 		return (
 			<Container className='text-center py-5'>
@@ -64,57 +69,60 @@ const PvlcPatientsPage: React.FC = () => {
 	}
 
 	return (
-		<Container>
+		<Container fluid className='px-0'>
+			{' '}
+			{/* Убираем отступы для полной ширины */}
 			<Breadcrumbs items={[{ label: 'Категории пациентов' }]} />
+			{/* Заголовок страницы как в исходнике */}
+			<div className='page-header'>
+				<Container>
+					<h1 className='page-title'>
+						Расчёт должной жизненной емкости лёгких (ДЖЕЛ)
+					</h1>
+				</Container>
+			</div>
+			<Container>
+				{error && (
+					<Alert variant='warning' className='mb-4'>
+						{error}
+					</Alert>
+				)}
 
-			<Row className='mb-4'>
-				<Col>
-					<h1>Категории пациентов</h1>
-					{/*<p className='text-muted'>
-						Выберите подходящую категорию для расчета должной жизненной емкости
-						легких
-					</p>*/}
-				</Col>
-			</Row>
+				{/* Поисковая строка с кнопкой как в исходнике */}
+				<section className='search-section'>
+					<Form onSubmit={handleSearchSubmit} className='search-form'>
+						<div className='search-group'>
+							<input
+								type='text'
+								name='query'
+								placeholder='Поиск категорий...'
+								value={searchTerm}
+								onChange={handleSearchChange}
+								className='search-input'
+							/>
+							<button type='submit' className='search-button'>
+								Найти
+							</button>
+						</div>
+					</Form>
+				</section>
 
-			{error && (
-				<Alert variant='warning' className='mb-4'>
-					{error}
-				</Alert>
-			)}
-
-			<Row className='mb-4'>
-				<Col md={8}>
-					<Form.Group>
-						<Form.Control
-							type='text'
-							placeholder='Поиск категорий...'
-							value={searchTerm}
-							onChange={handleSearchChange}
-						/>
-					</Form.Group>
-				</Col>
-				<Col md={4} className='text-end'>
-					<small className='text-muted'>
-						Найдено: {filteredFormulas.length} категорий
-					</small>
-				</Col>
-			</Row>
-
-			{filteredFormulas.length === 0 ? (
-				<Alert variant='info'>
-					По выбранным фильтрам категории не найдены. Попробуйте изменить
-					параметры поиска.
-				</Alert>
-			) : (
-				<Row>
-					{filteredFormulas.map(formula => (
-						<Col key={formula.id} xs={12} sm={6} lg={4} className='mb-4'>
-							<FormulaCard formula={formula} />
-						</Col>
-					))}
-				</Row>
-			)}
+				{/* Сетка карточек */}
+				{filteredFormulas.length === 0 ? (
+					<Alert variant='info'>
+						По выбранным фильтрам категории не найдены. Попробуйте изменить
+						параметры поиска.
+					</Alert>
+				) : (
+					<section className='services-section'>
+						<div className='services-grid'>
+							{filteredFormulas.map(formula => (
+								<FormulaCard key={formula.id} formula={formula} />
+							))}
+						</div>
+					</section>
+				)}
+			</Container>
 		</Container>
 	)
 }

@@ -29,7 +29,7 @@ const CustomNavbar: React.FC = () => {
 						</Nav.Link>
 					</Nav>
 					<Nav>
-						<Nav.Link
+						{/*<Nav.Link
 							href='http://localhost:8080/swagger/index.html'
 							target='_blank'
 						>
@@ -37,7 +37,7 @@ const CustomNavbar: React.FC = () => {
 						</Nav.Link>
 						<Nav.Link href='http://localhost:8081' target='_blank'>
 							Adminer
-						</Nav.Link>
+						</Nav.Link>*/}
 					</Nav>
 				</Navbar.Collapse>
 			</Container>

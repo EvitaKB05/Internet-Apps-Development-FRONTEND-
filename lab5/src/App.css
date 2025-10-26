@@ -1,6 +1,206 @@
+/* Reset и базовые стили как в исходнике */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	text-size-adjust: 100%; /* Замена -webkit-text-size-adjust */
+}
+html,
+body,
+#root {
+	width: 100%;
+	min-height: 100vh;
+}
+body {
+	font-family: 'Commissioner', sans-serif;
+	background: #f8f9fa;
+	min-height: 100vh;
+	color: #444444;
+	line-height: 1.6;
+}
+
 .App {
 	min-height: 100vh;
-	background-color: #f8f9fa;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
+/* Стили для page-header как в исходнике */
+.page-header {
+	width: 100vw;
+	position: relative;
+	text-align: center;
+	left: 50%;
+	right: 50%;
+	color: #fff;
+	margin-left: -50vw;
+	margin-right: -50vw;
+	background: #00a6ca;
+	margin-bottom: 3rem;
+	padding: 2rem 0;
+}
+
+.page-title {
+	font-size: 2.2rem;
+	font-weight: 300;
+	margin-bottom: 0;
+}
+
+/* Стили для поисковой строки как в исходнике */
+.search-section {
+	margin-bottom: 3rem;
+	text-align: center;
+}
+
+.search-form {
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+.search-group {
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+}
+
+.search-input {
+	flex: 1;
+	max-width: 600px;
+	padding: 1rem 1.5rem;
+	border: 3px solid #e7e7e7;
+	border-radius: 20px;
+	font-size: 1rem;
+	outline: none;
+	transition: border-color 0.3s ease;
+	background: white;
+}
+
+.search-input:focus {
+	border-color: #00a6ca;
+}
+
+.search-button {
+	padding: 1rem 2rem;
+	background: #00a6ca;
+	color: #fff;
+	border: none;
+	border-radius: 10px;
+	font-size: 1rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-button:hover {
+	background: #008fb3;
+	box-shadow: 0 4px 12px rgba(0, 166, 202, 0.3);
+}
+
+/* Стили для сетки карточек как в исходнике */
+.services-section {
+	width: 100%;
+}
+
+.services-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 2rem;
+	justify-content: center;
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+/* Стили для карточек как в исходнике */
+.service-card {
+	background: #fff;
+	border-radius: 15px;
+	overflow: hidden;
+	box-shadow: 0 4px 20px rgba(27, 27, 27, 0.09);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+	width: 292.5px;
+	height: 395.72px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.service-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.card-image {
+	height: 270px;
+	overflow: hidden;
+}
+
+.service-image {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.card-content {
+	padding: 1.5rem;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.card-title {
+	font-size: 1.2rem;
+	font-weight: 600;
+	color: #333;
+	margin-bottom: 1rem;
+	line-height: 1.3;
+}
+
+.card-buttons {
+	display: flex;
+	gap: 0.8rem;
+	margin-top: auto;
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.8rem 1.2rem;
+	text-decoration: none;
+	border-radius: 10px;
+	font-weight: 600;
+	text-align: center;
+	text-transform: uppercase;
+	transition: all 0.3s ease;
+	border: none;
+	cursor: pointer;
+	font-size: 0.9rem;
+	width: 120px;
+	height: 40px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-details {
+	background: #00a6ca;
+	color: #fff !important;
+}
+
+.btn-details:hover {
+	background: #008fb3;
+	color: #fff !important;
+	box-shadow: 0 4px 12px rgba(0, 166, 202, 0.4);
+}
+
+.btn-select {
+	background: #e40055;
+	color: #fff;
+}
+
+.btn-select:hover {
+	background: #c3004a;
+	box-shadow: 0 4px 12px rgba(228, 0, 85, 0.4);
 }
 
 /* Стили для service-meta как в исходном HTML */
@@ -30,50 +230,156 @@
 	font-weight: 600;
 }
 
-/* Кастомные стили для карточек */
-.card {
-	transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.card:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
-}
-
 /* Стили для хлебных крошек */
 .breadcrumb {
 	background-color: transparent;
 	padding: 0.75rem 0;
-}
-
-/* Адаптивность изображений */
-.img-fluid {
-	max-width: 100%;
-	height: auto;
-}
-/* Стили для мета-информации как в исходной работе */
-.service-meta {
-	background: #f9f9f9;
-	padding: 1.5rem;
-	border-radius: 8px;
-	border: 1px solid #e0e0e0;
-}
-
-.meta-item {
-	margin-bottom: 1rem;
-	font-size: 1.1rem;
-	color: #555;
-	line-height: 1.5;
-	padding: 0.5rem 0;
-	border-bottom: 1px solid #eee;
-}
-
-.meta-item:last-child {
 	margin-bottom: 0;
-	border-bottom: none;
 }
 
-.meta-item strong {
+/* Адаптивность */
+@media (max-width: 768px) {
+	.search-group {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.search-input {
+		max-width: 100%;
+	}
+
+	.services-grid {
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+	}
+
+	.page-title {
+		font-size: 1.8rem;
+	}
+
+	.card-buttons {
+		flex-direction: column;
+	}
+
+	.btn {
+		width: 100%;
+	}
+}
+
+@media (max-width: 480px) {
+	.page-title {
+		font-size: 1.6rem;
+	}
+
+	.service-card {
+		width: 100%;
+		max-width: 292.5px;
+		height: 300px;
+	}
+
+	.card-content {
+		padding: 1.2rem;
+	}
+
+	.btn {
+		padding: 0.7rem 1rem;
+		font-size: 0.85rem;
+	}
+}
+/* Стили для детальной страницы как в исходнике */
+.service-detail {
+	background: #fff;
+	border-radius: 10px;
+	padding: 2rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	margin-bottom: 2rem;
+}
+
+.service-content-wrapper {
+	display: flex;
+	gap: 3rem;
+	align-items: flex-start;
+}
+
+.service-image-container {
+	flex: 1;
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	min-height: 300px;
+	max-width: 400px;
+	margin: 0 auto;
+}
+
+.service-main-image {
+	width: 100%;
+	height: auto;
+	max-height: 500px;
+	object-fit: contain;
+	border-radius: 8px;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.service-info-container {
+	flex: 1.2;
+}
+
+.service-title {
+	font-size: 1.8rem;
 	color: #333;
+	margin-bottom: 1.5rem;
 	font-weight: 600;
+	padding-bottom: 0.5rem;
+}
+
+/* Адаптивность для детальной страницы */
+@media (max-width: 968px) {
+	.service-content-wrapper {
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.service-image-container {
+		min-height: 250px;
+	}
+
+	.service-main-image {
+		max-height: 400px;
+	}
+}
+
+@media (max-width: 768px) {
+	.service-detail {
+		padding: 1.5rem;
+	}
+
+	.service-image-container {
+		min-height: 200px;
+	}
+
+	.service-main-image {
+		max-height: 350px;
+	}
+}
+
+@media (max-width: 480px) {
+	.service-title {
+		font-size: 1.5rem;
+	}
+
+	.service-image-container {
+		min-height: 150px;
+	}
+
+	.service-main-image {
+		max-height: 300px;
+	}
+
+	.service-meta {
+		padding: 1rem;
+	}
+
+	.meta-item {
+		font-size: 1rem;
+	}
 }

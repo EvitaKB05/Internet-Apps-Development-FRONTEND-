@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Container, Row, Col, Card, Alert, Spinner } from 'react-bootstrap'
+import { Container, Alert, Spinner } from 'react-bootstrap'
 import { useParams, useNavigate } from 'react-router-dom'
 import type { PvlcMedFormula } from '../types'
 import { apiService } from '../services/api'
@@ -73,7 +73,7 @@ const PvlcPatientPage: React.FC = () => {
 		: '/DefaultImage.jpg'
 
 	return (
-		<Container>
+		<Container fluid className='px-0'>
 			<Breadcrumbs
 				items={[
 					{ label: 'Категории пациентов', path: '/pvlc_patients' },
@@ -81,35 +81,33 @@ const PvlcPatientPage: React.FC = () => {
 				]}
 			/>
 
-			{/*<Row>
-				<Col>
-					<button
-						className='btn btn-outline-secondary mb-3'
-						onClick={handleBackClick}
-					>
-						← Назад к списку
-					</button>
-				</Col>
-			</Row> */}
+			<Container>
+				{/*<Row>
+					<Col>
+						<button
+							className='btn btn-outline-secondary mb-3'
+							onClick={handleBackClick}
+						>
+							← Назад к списку
+						</button>
+					</Col>
+				</Row> */}
 
-			<Row>
-				<Col lg={6}>
-					<Card className='mb-4'>
-						<Card.Img
-							variant='top'
-							src={imageUrl}
-							style={{ height: '400px', objectFit: 'contain', padding: '20px' }}
-							onError={e => {
-								;(e.target as HTMLImageElement).src = '/DefaultImage.jpg'
-							}}
-						/>
-					</Card>
-				</Col>
+				<div className='service-detail'>
+					<div className='service-content-wrapper'>
+						<div className='service-image-container'>
+							<img
+								src={imageUrl}
+								alt={formula.title}
+								className='service-main-image'
+								onError={e => {
+									;(e.target as HTMLImageElement).src = '/DefaultImage.jpg'
+								}}
+							/>
+						</div>
 
-				<Col lg={6}>
-					<Card className='h-100'>
-						<Card.Body>
-							<Card.Title className='h2 mb-3'>{formula.title}</Card.Title>
+						<div className='service-info-container'>
+							<h2 className='service-title'>{formula.title}</h2>
 
 							<div className='service-meta'>
 								<p className='meta-item'>
@@ -129,10 +127,10 @@ const PvlcPatientPage: React.FC = () => {
 									<strong>Описание:</strong> {formula.description}
 								</p>
 							</div>
-						</Card.Body>
-					</Card>
-				</Col>
-			</Row>
+						</div>
+					</div>
+				</div>
+			</Container>
 		</Container>
 	)
 }
