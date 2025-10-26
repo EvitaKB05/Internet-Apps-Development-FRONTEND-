@@ -1,0 +1,74 @@
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{{ .service.Title }} - Лёгкая Жизнь</title>
+		<!-- ЗАМЕНА: обновляем путь к CSS -->
+		<link rel="stylesheet" href="/static/styles/pvlc_patient.css" />
+	</head>
+	<body>
+		<!-- Хедер странички -->
+		<header class="header">
+			<div class="header-container">
+				<div class="logo">
+					<!-- ЗАМЕНА: обновляем ссылку на главную -->
+					<a href="/pvlc_patients" class="home-link">
+						<img
+							src="/static/img/lung.png"
+							alt="Лёгкая Жизнь"
+							class="home-icon"
+						/>
+						<span class="logo-text">Домой</span>
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Основной контент -->
+		<main class="main-content">
+			<div class="container">
+				<!-- Заголовок страницы -->
+				<div class="page-header">
+					<h1 class="page-title">
+						Расчёт должной жизненной ёмкости лёгких (ДЖЕЛ)
+					</h1>
+				</div>
+
+				<div class="service-detail">
+					<div class="service-content-wrapper">
+						<div class="service-image-container">
+							<img
+								src="http://localhost:9000/pics/{{ .service.Image }}"
+								alt="{{ .service.Title }}"
+								class="service-main-image"
+							/>
+						</div>
+
+						<div class="service-info-container">
+							<h2 class="service-title">{{ .service.Title }}</h2>
+
+							<div class="service-meta">
+								<p class="meta-item">
+									<strong>Категория:</strong> {{ .service.Category }}
+								</p>
+								<p class="meta-item">
+									<strong>Пол:</strong> {{ .service.Gender }}
+								</p>
+								<p class="meta-item">
+									<strong>Возраст:</strong> {{ .service.MinAge }}-{{
+									.service.MaxAge }} лет
+								</p>
+								<p class="meta-item">
+									<strong>Формула расчёта:</strong> {{ .service.Formula }}
+								</p>
+								<p class="meta-item">
+									<strong>Описание:</strong> {{ .service.Description }}
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</body>
+</html>

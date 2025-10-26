@@ -1,0 +1,107 @@
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Лёгкая Жизнь - Расчет ДЖЕЛ</title>
+		<!-- ЗАМЕНА: обновляем путь к CSS -->
+		<link rel="stylesheet" href="/static/styles/pvlc_patients.css" />
+	</head>
+	<body>
+		<!-- Хедер странички -->
+		<header class="header">
+			<div class="header-container">
+				<div class="logo">
+					<!-- ЗАМЕНА: обновляем ссылку на главную -->
+					<a href="/pvlc_patients" class="home-link">
+						<img
+							src="/static/img/lung.png"
+							alt="Лёгкая Жизнь"
+							class="home-icon"
+						/>
+						<span class="logo-text">Домой</span>
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Основной контент -->
+		<main class="main-content">
+			<div class="container">
+				<!-- Заголовок страницы -->
+				<div class="page-header">
+					<h1 class="page-title">
+						Расчёт должной жизненной емкости лёгких (ДЖЕЛ)
+					</h1>
+				</div>
+
+				<!-- Поисковая строка -->
+				<section class="search-section">
+					<!-- ЗАМЕНА: обновляем action формы -->
+					<form action="/pvlc_patients" method="GET" class="search-form">
+						<div class="search-group">
+							<input
+								type="text"
+								name="query"
+								placeholder="Поиск категорий..."
+								value="{{ .query }}"
+								class="search-input"
+							/>
+							<button type="submit" class="search-button">Найти</button>
+						</div>
+					</form>
+				</section>
+
+				<!-- Сетка с карточками услуг -->
+				<section class="services-section">
+					<div class="services-grid">
+						{{ range .services }}
+						<div class="service-card">
+							<div class="card-image">
+								<img
+									src="http://localhost:9000/pics/{{ .Image }}"
+									alt="{{ .Title }}"
+									class="service-image"
+								/>
+							</div>
+							<div class="card-content">
+								<h3 class="card-title">{{ .Title }}</h3>
+								<div class="card-buttons">
+									<!-- ЗАМЕНА: обновляем ссылку на детальную страницу -->
+									<a href="/pvlc_patient/{{ .ID }}" class="btn btn-details">
+										Подробнее
+									</a>
+									<!-- ЗАМЕНА: обновляем action формы добавления -->
+									<form
+										action="/pvlc_patient/{{ .ID }}/add"
+										method="POST"
+										style="display: inline"
+									>
+										<button type="submit" class="btn btn-select">
+											Добавить
+										</button>
+									</form>
+								</div>
+							</div>
+						</div>
+						{{ end }}
+					</div>
+				</section>
+			</div>
+		</main>
+
+		<!-- Иконка папки в левом нижнем углу -->
+		{{ if .calculationsCount }}
+		<!-- ЕСЛИ КОРЗИНА НЕ ПУСТАЯ - ДЕЛАЕМ ССЫЛКУ АКТИВНОЙ -->
+		<!-- ЗАМЕНА: обновляем ссылку на страницу расчета -->
+		<a href="/pvlc_med_calc/{{ .draftCardID }}" class="folder-icon">
+			<img src="/static/img/folder.png" alt="Заявки" width="100" height="70" />
+			<span class="notification-badge">{{ .calculationsCount }}</span>
+		</a>
+		{{ else }}
+		<!-- ЕСЛИ КОРЗИНА ПУСТАЯ - ДЕЛАЕМ НЕАКТИВНОЙ -->
+		<div class="folder-icon" style="cursor: not-allowed; opacity: 0.5">
+			<img src="/static/img/folder.png" alt="Заявки" width="100" height="70" />
+		</div>
+		{{ end }}
+	</body>
+</html>

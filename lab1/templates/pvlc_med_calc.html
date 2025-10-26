@@ -1,0 +1,137 @@
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Лёгкая Жизнь - Расчёт ДЖЕЛ</title>
+		<!-- ЗАМЕНА: обновляем путь к CSS -->
+		<link rel="stylesheet" href="/static/styles/pvlc_med_calc.css" />
+	</head>
+	<body>
+		<!-- Хедер странички -->
+		<header class="header">
+			<div class="header-container">
+				<div class="logo">
+					<!-- ЗАМЕНА: обновляем ссылку на главную -->
+					<a href="/pvlc_patients" class="home-link">
+						<img
+							src="/static/img/lung.png"
+							alt="Лёгкая Жизнь"
+							class="home-icon"
+						/>
+						<span class="logo-text">Домой</span>
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Основной контент -->
+		<main class="main-content">
+			<div class="container">
+				<!-- Заголовок страницы -->
+				<div class="page-header">
+					<h1 class="page-title">
+						Расчёт должной жизненной емкости лёгких (ДЖЕЛ)
+					</h1>
+				</div>
+
+				<!-- Поле выбора врача -->
+				<section class="search-section">
+					<div class="search-group">
+						<!-- ЗАМЕНЯЕМ ОБЫЧНОЕ ПОЛЕ ВВОДА НА SELECT С ВОЗМОЖНОСТЬЮ РУЧНОГО ВВОДА -->
+						<input
+							list="doctors-list"
+							class="search-input"
+							placeholder="ФИО Врача"
+							value="{{ .currentDoctor }}"
+						/>
+						<datalist id="doctors-list">
+							{{ range .doctors }}
+							<option value="{{ . }}">{{ end }}</option>
+						</datalist>
+
+						<!-- КНОПКУ "Сохранить" КОММЕНТИРУЕМ, НО ОСТАВЛЯЕМ -->
+						<!--
+						<button type="button" class="search-button">Сохранить</button>
+						-->
+						<div style="width: 130px"></div>
+						<!-- Заглушка для выравнивания -->
+					</div>
+				</section>
+
+				<!-- Выбранные категории -->
+				<section class="selected-categories">
+					<h2 class="section-title">Выбранные категории</h2>
+
+					<div class="categories-grid">
+						{{ range .calculations }}
+						<div class="category-card">
+							<div class="category-image-container">
+								<div class="category-image">
+									<img
+										src="http://localhost:9000/pics/{{ .Image }}"
+										alt="{{ .Title }}"
+										class="category-img"
+									/>
+								</div>
+								<!-- Обычная надпись под картинкой -->
+								<div class="category-title-plain">{{ .Title }}</div>
+							</div>
+							<div class="category-info">
+								<div class="category-details">
+									<div class="parameters-row">
+										<div class="parameter-group">
+											<span class="parameter-label">Пол:</span>
+											<span class="parameter-value">{{ .Gender }}</span>
+										</div>
+										<div class="parameter-group">
+											<span class="parameter-label">Возраст:</span>
+											<span class="parameter-value"
+												>{{ .MinAge }}-{{ .MaxAge }} лет</span
+											>
+										</div>
+										<!-- ДОБАВЛЯЕМ ПОЛЕ ДЛЯ ВВОДА РОСТА -->
+										<div class="parameter-group">
+											<span class="parameter-label">Рост:</span>
+											<input
+												type="number"
+												class="height-input"
+												placeholder="см"
+												min="50"
+												max="250"
+												value=""
+											/>
+										</div>
+										<!-- Результат ДЖЕЛ (пока заглушка) -->
+										<div class="parameter-group">
+											<span class="parameter-label">Результат ДЖЕЛ:</span>
+											<input
+												type="text"
+												class="result-input"
+												value=""
+												placeholder="л"
+												readonly
+											/>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						{{ end }}
+					</div>
+				</section>
+
+				<!-- Кнопки действий -->
+				<section class="action-buttons">
+					<div class="buttons-container">
+						<!--<button type="button" class="btn btn-calculate">Расчитать</button> -->
+						<!-- ИЗМЕНЯЕМ КНОПКУ "Удалить" на форму -->
+						<!-- ЗАМЕНА: обновляем action формы удаления -->
+						<form action="/pvlc_med_calc/delete" method="POST">
+							<button type="submit" class="btn btn-delete">Удалить</button>
+						</form>
+					</div>
+				</section>
+			</div>
+		</main>
+	</body>
+</html>
