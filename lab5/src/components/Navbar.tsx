@@ -8,7 +8,7 @@ const CustomNavbar: React.FC = () => {
 	return (
 		<Navbar bg='light' expand='lg' className='mb-4'>
 			<Container>
-				<Navbar.Brand as={Link} to='/'>
+				<Navbar.Brand as={Link} to='/pvlc_home_page'>
 					<img
 						src='/lung.png'
 						width='30'
@@ -21,11 +21,11 @@ const CustomNavbar: React.FC = () => {
 				<Navbar.Toggle aria-controls='basic-navbar-nav' />
 				<Navbar.Collapse id='basic-navbar-nav'>
 					<Nav className='me-auto' activeKey={location.pathname}>
-						<Nav.Link as={Link} to='/'>
+						<Nav.Link as={Link} to='/pvlc_home_page'>
 							Главная
 						</Nav.Link>
-						<Nav.Link as={Link} to='/formulas'>
-							Формулы ДЖЕЛ
+						<Nav.Link as={Link} to='/pvlc_patients'>
+							Категории пациентов
 						</Nav.Link>
 					</Nav>
 					<Nav>

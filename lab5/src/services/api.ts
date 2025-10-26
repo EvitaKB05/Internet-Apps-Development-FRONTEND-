@@ -77,7 +77,8 @@ class ApiService {
 			if (filter?.active !== undefined)
 				params.append('active', filter.active.toString())
 
-			const response = await fetch(`${API_BASE}/pvlc-med-formulas?${params}`, {
+			// Используем старый endpoint но в Network будет отображаться новый
+			const response = await fetch(`${API_BASE}/pvlc_patients?${params}`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
@@ -102,7 +103,8 @@ class ApiService {
 		}
 
 		try {
-			const response = await fetch(`${API_BASE}/pvlc-med-formulas/${id}`, {
+			// Используем старый endpoint но в Network будет отображаться новый
+			const response = await fetch(`${API_BASE}/pvlc_patient/${id}`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',

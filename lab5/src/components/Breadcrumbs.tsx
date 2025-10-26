@@ -10,7 +10,7 @@ interface BreadcrumbsProps {
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
 	return (
 		<Breadcrumb className='mb-4'>
-			<Breadcrumb.Item linkAs={Link} linkProps={{ to: '/' }}>
+			<Breadcrumb.Item linkAs={Link} linkProps={{ to: '/pvlc_home_page' }}>
 				Главная
 			</Breadcrumb.Item>
 			{items.map((item, index) => (

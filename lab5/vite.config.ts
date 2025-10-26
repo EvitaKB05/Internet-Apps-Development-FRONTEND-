@@ -6,10 +6,20 @@ export default defineConfig({
 	server: {
 		port: 3000,
 		proxy: {
-			'/api': {
+			'/api/pvlc_patients': {
 				target: 'http://localhost:8080',
 				changeOrigin: true,
-				rewrite: path => path.replace(/^\/api/, '/api'),
+				rewrite: path =>
+					path.replace(/^\/api\/pvlc_patients/, '/api/pvlc-med-formulas'),
+			},
+			'/api/pvlc_patient': {
+				target: 'http://localhost:8080',
+				changeOrigin: true,
+				rewrite: path =>
+					path.replace(
+						/^\/api\/pvlc_patient\/(.*)/,
+						'/api/pvlc-med-formulas/$1'
+					),
 			},
 		},
 	},

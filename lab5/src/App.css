@@ -3,6 +3,33 @@
 	background-color: #f8f9fa;
 }
 
+/* Стили для service-meta как в исходном HTML */
+.service-meta {
+	background: #f9f9f9;
+	padding: 1.5rem;
+	border-radius: 8px;
+	border: 1px solid #e0e0e0;
+}
+
+.meta-item {
+	margin-bottom: 1rem;
+	font-size: 1.1rem;
+	color: #555;
+	line-height: 1.5;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid #eee;
+}
+
+.meta-item:last-child {
+	margin-bottom: 0;
+	border-bottom: none;
+}
+
+.meta-item strong {
+	color: #333;
+	font-weight: 600;
+}
+
 /* Кастомные стили для карточек */
 .card {
 	transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -23,4 +50,30 @@
 .img-fluid {
 	max-width: 100%;
 	height: auto;
+}
+/* Стили для мета-информации как в исходной работе */
+.service-meta {
+	background: #f9f9f9;
+	padding: 1.5rem;
+	border-radius: 8px;
+	border: 1px solid #e0e0e0;
+}
+
+.meta-item {
+	margin-bottom: 1rem;
+	font-size: 1.1rem;
+	color: #555;
+	line-height: 1.5;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid #eee;
+}
+
+.meta-item:last-child {
+	margin-bottom: 0;
+	border-bottom: none;
+}
+
+.meta-item strong {
+	color: #333;
+	font-weight: 600;
 }

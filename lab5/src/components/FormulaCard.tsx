@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Button, Badge } from 'react-bootstrap'
+import { Card, Button } from 'react-bootstrap'
 import type { PvlcMedFormula } from '../types'
 import { useNavigate } from 'react-router-dom'
 
@@ -11,7 +11,7 @@ const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
 	const navigate = useNavigate()
 
 	const handleDetailsClick = () => {
-		navigate(`/formulas/${formula.id}`)
+		navigate(`/pvlc_patient/${formula.id}`)
 	}
 
 	const imageUrl = formula.image_url
@@ -31,21 +31,9 @@ const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
 			<Card.Body className='d-flex flex-column'>
 				<Card.Title className='fs-6'>{formula.title}</Card.Title>
 
-				<div className='mb-2'>
-					<Badge bg='primary' className='me-1'>
-						{formula.category}
-					</Badge>
-					<Badge bg='secondary' className='me-1'>
-						{formula.gender}
-					</Badge>
-					<Badge bg='info'>
-						{formula.min_age}-{formula.max_age} лет
-					</Badge>
-				</div>
-
-				<Card.Text className='flex-grow-1 small text-muted'>
+				{/*<Card.Text className='flex-grow-1 small text-muted'>
 					{formula.description}
-				</Card.Text>
+				</Card.Text>*/}
 
 				<Button
 					variant='outline-primary'
