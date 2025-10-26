@@ -1,0 +1,26 @@
+.App {
+	min-height: 100vh;
+	background-color: #f8f9fa;
+}
+
+/* Кастомные стили для карточек */
+.card {
+	transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Стили для хлебных крошек */
+.breadcrumb {
+	background-color: transparent;
+	padding: 0.75rem 0;
+}
+
+/* Адаптивность изображений */
+.img-fluid {
+	max-width: 100%;
+	height: auto;
+}
