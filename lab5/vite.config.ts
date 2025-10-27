@@ -6,20 +6,11 @@ export default defineConfig({
 	server: {
 		port: 3000,
 		proxy: {
-			'/api/pvlc_patients': {
+			// ИСПРАВЛЕНИЕ: Упрощаем proxy, так как теперь используем прямые endpoints
+			'/api': {
 				target: 'http://localhost:8080',
 				changeOrigin: true,
-				rewrite: path =>
-					path.replace(/^\/api\/pvlc_patients/, '/api/pvlc-med-formulas'),
-			},
-			'/api/pvlc_patient': {
-				target: 'http://localhost:8080',
-				changeOrigin: true,
-				rewrite: path =>
-					path.replace(
-						/^\/api\/pvlc_patient\/(.*)/,
-						'/api/pvlc-med-formulas/$1'
-					),
+				// Убираем rewrite, так как endpoints теперь совпадают
 			},
 		},
 	},
