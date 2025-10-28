@@ -40,7 +40,7 @@ func (a *API) DeleteMedMmPvlcCalculation(c *gin.Context) {
 // PUT /api/med-mm-pvlc-calculations - изменение м-м
 func (a *API) UpdateMedMmPvlcCalculation(c *gin.Context) {
 	var request struct {
-		CardID           uint                                 `json:"card_id" binding:"required"`
+		CardID           uint                                 `json:"med_card_id" binding:"required"`
 		PvlcMedFormulaID uint                                 `json:"pvlc_med_formula_id" binding:"required"`
 		Data             ds.UpdateMedMmPvlcCalculationRequest `json:"data" binding:"required"`
 	}
