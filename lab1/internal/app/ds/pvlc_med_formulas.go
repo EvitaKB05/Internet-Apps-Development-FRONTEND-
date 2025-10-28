@@ -1,7 +1,7 @@
 // internal/app/ds/pvlc_med_formulas.go
 package ds
 
-import "time"
+//import "time"
 
 type PvlcMedFormula struct {
 	ID          uint      `gorm:"primaryKey"`
@@ -14,8 +14,8 @@ type PvlcMedFormula struct {
 	MinAge      int       `gorm:"not null"`
 	MaxAge      int       `gorm:"not null"`
 	IsActive    bool      `gorm:"default:true"`
-	CreatedAt   time.Time `gorm:"autoCreateTime"` // ДОБАВЛЕНО ДЛЯ ЛР4
-	UpdatedAt   time.Time `gorm:"autoUpdateTime"` // ДОБАВЛЕНО ДЛЯ ЛР4
+	//CreatedAt   time.Time `gorm:"autoCreateTime"` // ДОБАВЛЕНО ДЛЯ ЛР4
+	//UpdatedAt   time.Time `gorm:"autoUpdateTime"` // ДОБАВЛЕНО ДЛЯ ЛР4
 }
 
 // рост +

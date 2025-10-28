@@ -15,8 +15,8 @@ const (
 type PvlcMedCard struct {
 	ID           uint      `gorm:"primaryKey"`
 	Status       string    `gorm:"not null; default:'черновик'"`
-	CreatedAt    time.Time `gorm:"autoCreateTime"` // ИЗМЕНЕНО ДЛЯ ЛР4
-	UpdatedAt    time.Time `gorm:"autoUpdateTime"` // ДОБАВЛЕНО ДЛЯ ЛР4
+	//CreatedAt    time.Time `gorm:"autoCreateTime"` // ИЗМЕНЕНО ДЛЯ ЛР4
+	//UpdatedAt    time.Time `gorm:"autoUpdateTime"` // ДОБАВЛЕНО ДЛЯ ЛР4
 	PatientName  string    `gorm:"not null"`
 	DoctorName   string    `gorm:"type:varchar(100); default:'Иванов И.И.'"`
 	FinalizedAt  *time.Time
