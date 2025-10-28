@@ -53,17 +53,27 @@ const PvlcPatientPage: React.FC = () => {
 
 	if (error || !formula) {
 		return (
-			<Container>
+			<Container fluid className='px-0'>
 				<Breadcrumbs
 					items={[
 						{ label: 'Категории пациентов', path: '/pvlc_patients' },
 						{ label: 'Не найдено' },
 					]}
 				/>
-				<Alert variant='danger'>{error || 'Категория не найдена'}</Alert>
-				<button className='btn btn-primary' onClick={handleBackClick}>
-					Вернуться к списку
-				</button>
+				{/* Добавляем page-header для страницы ошибки */}
+				<div className='page-header'>
+					<Container>
+						<h1 className='page-title'>
+							Расчёт должной жизненной емкости лёгких (ДЖЕЛ)
+						</h1>
+					</Container>
+				</div>
+				<Container>
+					<Alert variant='danger'>{error || 'Категория не найдена'}</Alert>
+					<button className='btn btn-primary' onClick={handleBackClick}>
+						Вернуться к списку
+					</button>
+				</Container>
 			</Container>
 		)
 	}
@@ -80,6 +90,15 @@ const PvlcPatientPage: React.FC = () => {
 					{ label: formula.title },
 				]}
 			/>
+
+			{/* ДОБАВЛЯЕМ page-header для детальной страницы */}
+			<div className='page-header'>
+				<Container>
+					<h1 className='page-title'>
+						Расчёт должной жизненной емкости лёгких (ДЖЕЛ)
+					</h1>
+				</Container>
+			</div>
 
 			<Container>
 				{/*<Row>
