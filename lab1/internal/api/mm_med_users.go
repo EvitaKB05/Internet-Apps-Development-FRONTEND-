@@ -39,30 +39,28 @@ func (a *API) DeleteMedMmPvlcCalculation(c *gin.Context) {
 
 // PUT /api/med-mm-pvlc-calculations - изменение м-м
 func (a *API) UpdateMedMmPvlcCalculation(c *gin.Context) {
-	var request struct {
-		CardID           uint                                 `json:"med_card_id" binding:"required"`
-		PvlcMedFormulaID uint                                 `json:"pvlc_med_formula_id" binding:"required"`
-		Data             ds.UpdateMedMmPvlcCalculationRequest `json:"data" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&request); err != nil {
-		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
-		return
-	}
+    var request ds.UpdateMedMmPvlcCalculationAPIRequest // ИСПОЛЬЗУЕМ НОВУЮ СТРУКТУРУ
+    
+    if err := c.ShouldBindJSON(&request); err != nil {
+        logrus.Error("JSON bind error: ", err)
+        a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса: "+err.Error())
+        return
+    }
 
-	// Проверяем что заявка существует и это черновик
-	card, err := a.repo.GetPvlcMedCardByID(request.CardID)
-	if err != nil || card.Status != ds.PvlcMedCardStatusDraft {
-		a.errorResponse(c, http.StatusBadRequest, "Неверная заявка")
-		return
-	}
+    // Проверяем что заявка существует и это черновик
+    card, err := a.repo.GetPvlcMedCardByID(request.CardID)
+    if err != nil || card.Status != ds.PvlcMedCardStatusDraft {
+        a.errorResponse(c, http.StatusBadRequest, "Неверная заявка")
+        return
+    }
 
-	if err := a.repo.UpdateMedMmPvlcCalculation(request.CardID, request.PvlcMedFormulaID, request.Data.InputHeight); err != nil {
-		logrus.Error("Error updating med mm pvlc calculation: ", err)
-		a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления расчета")
-		return
-	}
+    if err := a.repo.UpdateMedMmPvlcCalculation(request.CardID, request.PvlcMedFormulaID, request.Data.InputHeight); err != nil {
+        logrus.Error("Error updating med mm pvlc calculation: ", err)
+        a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления расчета")
+        return
+    }
 
-	a.successResponse(c, gin.H{"message": "Расчет успешно обновлен"})
+    a.successResponse(c, gin.H{"message": "Расчет успешно обновлен"})
 }
 
 // Домен: Пользователи (MedUsers)

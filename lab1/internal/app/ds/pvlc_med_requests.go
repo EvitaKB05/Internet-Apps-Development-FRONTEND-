@@ -1,4 +1,3 @@
-// internal/app/ds/pvlc_med_requests.go
 package ds
 
 // Запросы для API
@@ -42,6 +41,14 @@ type UpdateMedMmPvlcCalculationRequest struct {
 	InputHeight float64 `json:"input_height" binding:"required"`
 }
 
+// ДОБАВЛЕНО: структура для API запроса обновления расчета
+type UpdateMedMmPvlcCalculationAPIRequest struct {
+	CardID           uint                              `json:"med_card_id" binding:"required"`
+	PvlcMedFormulaID uint                              `json:"pvlc_med_formula_id" binding:"required"`
+	Data             UpdateMedMmPvlcCalculationRequest `json:"data" binding:"required"`
+}
+
+// УДАЛЕНО дублирующиеся объявления - оставляем только одни
 type MedUserRegistrationRequest struct {
 	Login       string `json:"login" binding:"required"`
 	Password    string `json:"password" binding:"required"`
