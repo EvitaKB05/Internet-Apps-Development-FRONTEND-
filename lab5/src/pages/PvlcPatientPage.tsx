@@ -53,34 +53,23 @@ const PvlcPatientPage: React.FC = () => {
 
 	if (error || !formula) {
 		return (
-			<Container fluid className='px-0'>
+			<Container>
 				<Breadcrumbs
 					items={[
 						{ label: 'Категории пациентов', path: '/pvlc_patients' },
 						{ label: 'Не найдено' },
 					]}
 				/>
-				{/* Добавляем page-header для страницы ошибки */}
-				<div className='page-header'>
-					<Container>
-						<h1 className='page-title'>
-							Расчёт должной жизненной емкости лёгких (ДЖЕЛ)
-						</h1>
-					</Container>
-				</div>
-				<Container>
-					<Alert variant='danger'>{error || 'Категория не найдена'}</Alert>
-					<button className='btn btn-primary' onClick={handleBackClick}>
-						Вернуться к списку
-					</button>
-				</Container>
+				<Alert variant='danger'>{error || 'Категория не найдена'}</Alert>
+				<button className='btn btn-primary' onClick={handleBackClick}>
+					Вернуться к списку
+				</button>
 			</Container>
 		)
 	}
 
-	const imageUrl = formula.image_url
-		? `http://localhost:9000/pics/${formula.image_url}`
-		: '/DefaultImage.jpg'
+	// имедж фикс
+	const imageUrl = apiService.getImageUrl(formula.image_url)
 
 	return (
 		<Container fluid className='px-0'>
@@ -90,8 +79,7 @@ const PvlcPatientPage: React.FC = () => {
 					{ label: formula.title },
 				]}
 			/>
-
-			{/* ДОБАВЛЯЕМ page-header для детальной страницы */}
+			{/* синий блок */}
 			<div className='page-header'>
 				<Container>
 					<h1 className='page-title'>
@@ -100,18 +88,8 @@ const PvlcPatientPage: React.FC = () => {
 				</Container>
 			</div>
 
+			<Container></Container>
 			<Container>
-				{/*<Row>
-					<Col>
-						<button
-							className='btn btn-outline-secondary mb-3'
-							onClick={handleBackClick}
-						>
-							← Назад к списку
-						</button>
-					</Col>
-				</Row> */}
-
 				<div className='service-detail'>
 					<div className='service-content-wrapper'>
 						<div className='service-image-container'>
@@ -120,6 +98,7 @@ const PvlcPatientPage: React.FC = () => {
 								alt={formula.title}
 								className='service-main-image'
 								onError={e => {
+									// Дополнительная защита
 									;(e.target as HTMLImageElement).src = '/DefaultImage.jpg'
 								}}
 							/>

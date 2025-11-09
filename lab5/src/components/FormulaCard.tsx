@@ -1,6 +1,7 @@
 import React from 'react'
 import type { PvlcMedFormula } from '../types'
 import { useNavigate } from 'react-router-dom'
+import { apiService } from '../services/api'
 
 interface FormulaCardProps {
 	formula: PvlcMedFormula
@@ -13,9 +14,8 @@ const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
 		navigate(`/pvlc_patient/${formula.id}`)
 	}
 
-	const imageUrl = formula.image_url
-		? `http://localhost:9000/pics/${formula.image_url}`
-		: '/DefaultImage.jpg'
+	//
+	const imageUrl = apiService.getImageUrl(formula.image_url)
 
 	return (
 		<div className='service-card'>
@@ -25,6 +25,7 @@ const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
 					alt={formula.title}
 					className='service-image'
 					onError={e => {
+						//
 						;(e.target as HTMLImageElement).src = '/DefaultImage.jpg'
 					}}
 				/>

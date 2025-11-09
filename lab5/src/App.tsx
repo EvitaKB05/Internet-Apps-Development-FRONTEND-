@@ -19,7 +19,7 @@ const App: React.FC = () => {
 							<Route path='/pvlc_home_page' element={<HomePage />} />
 							<Route path='/pvlc_patients' element={<PvlcPatientsPage />} />
 							<Route path='/pvlc_patient/:id' element={<PvlcPatientPage />} />
-							{/* Редирект с корня на главную страницу */}
+							{/* редирект с корня на главную страницу */}
 							<Route path='/' element={<HomePage />} />
 						</Routes>
 					</Container>

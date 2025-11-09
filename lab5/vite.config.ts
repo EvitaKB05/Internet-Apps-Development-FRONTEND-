@@ -6,11 +6,11 @@ export default defineConfig({
 	server: {
 		port: 3000,
 		proxy: {
-			// ИСПРАВЛЕНИЕ: Упрощаем proxy, так как теперь используем прямые endpoints
+			//
 			'/api': {
 				target: 'http://localhost:8080',
 				changeOrigin: true,
-				// Убираем rewrite, так как endpoints теперь совпадают
+				//
 			},
 		},
 	},

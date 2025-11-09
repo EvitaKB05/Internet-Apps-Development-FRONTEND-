@@ -12,10 +12,10 @@ const PvlcPatientsPage: React.FC = () => {
 	const [filteredFormulas, setFilteredFormulas] = useState<PvlcMedFormula[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
-	const [inputValue, setInputValue] = useState('') // Состояние для поля ввода
+	const [inputValue, setInputValue] = useState('') // вводик
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
-	// Берем поисковый запрос из URL параметров
+	//
 	const searchTerm = searchParams.get('search') || ''
 
 	useEffect(() => {
@@ -26,7 +26,7 @@ const PvlcPatientsPage: React.FC = () => {
 		applyFilters()
 	}, [formulas, searchTerm])
 
-	// Синхронизируем значение поля ввода с URL параметром
+	//
 	useEffect(() => {
 		setInputValue(searchTerm)
 	}, [searchTerm])
@@ -60,23 +60,23 @@ const PvlcPatientsPage: React.FC = () => {
 	}
 
 	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setInputValue(e.target.value) // Обновляем состояние поля ввода
+		setInputValue(e.target.value) // изменил по
 	}
 
 	const handleSearchSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
 
 		if (inputValue) {
-			setSearchParams({ search: inputValue }) // Устанавливаем параметр поиска
+			setSearchParams({ search: inputValue }) //
 		} else {
-			setSearchParams({}) // Очищаем параметры при пустом поиске
+			setSearchParams({}) //
 		}
 	}
 
 	const handleClearSearch = () => {
-		setSearchParams({}) // Полностью очищаем URL параметры
-		setInputValue('') // Очищаем поле ввода
-		// Фокус на поле ввода после очистки
+		setSearchParams({}) // очистил при перезагрузке
+		setInputValue('') //
+		//
 		if (searchInputRef.current) {
 			searchInputRef.current.focus()
 		}
@@ -95,7 +95,7 @@ const PvlcPatientsPage: React.FC = () => {
 
 	return (
 		<Container fluid className='px-0'>
-			{/* Передаем функцию сброса в Breadcrumbs */}
+			{/* крошки */}
 			<Breadcrumbs
 				items={[{ label: 'Категории пациентов', path: '/pvlc_patients' }]}
 				onPatientsClick={handleClearSearch}
@@ -122,8 +122,8 @@ const PvlcPatientsPage: React.FC = () => {
 								type='text'
 								name='query'
 								placeholder='Поиск категорий...'
-								value={inputValue} // Теперь используем value вместо defaultValue
-								onChange={handleSearchChange} // Добавляем обработчик изменений
+								value={inputValue} //
+								onChange={handleSearchChange} // пофиксил поиск
 								className='search-input'
 							/>
 							<button type='submit' className='search-button'>

@@ -17,7 +17,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
 	const handlePatientsClick = (e: React.MouseEvent) => {
 		e.preventDefault()
 		if (onPatientsClick) {
-			onPatientsClick() // Вызываем функцию сброса поиска
+			onPatientsClick() //поиск сброс
 		}
 		navigate('/pvlc_patients')
 	}

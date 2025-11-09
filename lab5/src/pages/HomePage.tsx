@@ -6,9 +6,9 @@ const HomePage: React.FC = () => {
 	return (
 		<Container fluid className='px-0'>
 			{' '}
-			{/* Убираем отступы для полной ширины */}
+			{/* отступ хз */}
 			<Breadcrumbs items={[]} />
-			{/* Заголовок страницы как в исходнике */}
+			{/* синий блок*/}
 			<div className='page-header'>
 				<Container>
 					<h1 className='page-title'>
