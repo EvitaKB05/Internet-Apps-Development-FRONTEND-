@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Container, Alert, Spinner, Form } from 'react-bootstrap'
 import { useSearchParams } from 'react-router-dom'
-import type { PvlcMedFormula } from '../types'
+import type { PvlcMedFormula, CartIconResponse } from '../types'
 import { apiService } from '../services/api'
 import Breadcrumbs from '../components/Breadcrumbs'
 import FormulaCard from '../components/FormulaCard'
@@ -12,24 +12,41 @@ const PvlcPatientsPage: React.FC = () => {
 	const [filteredFormulas, setFilteredFormulas] = useState<PvlcMedFormula[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
-	const [inputValue, setInputValue] = useState('') // вводик
+	const [inputValue, setInputValue] = useState('')
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
-	//
+	// НАЧАЛО ИЗМЕНЕНИЙ - добавляем состояние для корзины
+	const [cartData, setCartData] = useState<CartIconResponse>({
+		med_card_id: 0,
+		med_item_count: 0,
+	})
+	// КОНЕЦ ИЗМЕНЕНИЙ
+
 	const searchTerm = searchParams.get('search') || ''
 
 	useEffect(() => {
 		loadFormulas()
+		loadCartIcon()
 	}, [])
 
 	useEffect(() => {
 		applyFilters()
 	}, [formulas, searchTerm])
 
-	//
 	useEffect(() => {
 		setInputValue(searchTerm)
 	}, [searchTerm])
+
+	// НАЧАЛО ИЗМЕНЕНИЙ - упрощаем функцию загрузки корзины
+	const loadCartIcon = async () => {
+		try {
+			const data = await apiService.getCartIcon()
+			setCartData(data)
+		} catch (error) {
+			console.error('Error loading cart icon:', error)
+		}
+	}
+	// КОНЕЦ ИЗМЕНЕНИЙ
 
 	const loadFormulas = async () => {
 		try {
@@ -60,23 +77,22 @@ const PvlcPatientsPage: React.FC = () => {
 	}
 
 	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setInputValue(e.target.value) // изменил по
+		setInputValue(e.target.value)
 	}
 
 	const handleSearchSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
 
 		if (inputValue) {
-			setSearchParams({ search: inputValue }) //
+			setSearchParams({ search: inputValue })
 		} else {
-			setSearchParams({}) //
+			setSearchParams({})
 		}
 	}
 
 	const handleClearSearch = () => {
-		setSearchParams({}) // очистил при перезагрузке
-		setInputValue('') //
-		//
+		setSearchParams({})
+		setInputValue('')
 		if (searchInputRef.current) {
 			searchInputRef.current.focus()
 		}
@@ -95,11 +111,11 @@ const PvlcPatientsPage: React.FC = () => {
 
 	return (
 		<Container fluid className='px-0'>
-			{/* крошки */}
 			<Breadcrumbs
 				items={[{ label: 'Категории пациентов', path: '/pvlc_patients' }]}
 				onPatientsClick={handleClearSearch}
 			/>
+
 			<div className='page-header'>
 				<Container>
 					<h1 className='page-title'>
@@ -122,8 +138,8 @@ const PvlcPatientsPage: React.FC = () => {
 								type='text'
 								name='query'
 								placeholder='Поиск категорий...'
-								value={inputValue} //
-								onChange={handleSearchChange} // пофиксил поиск
+								value={inputValue}
+								onChange={handleSearchChange}
 								className='search-input'
 							/>
 							<button type='submit' className='search-button'>
@@ -147,6 +163,23 @@ const PvlcPatientsPage: React.FC = () => {
 							))}
 						</div>
 					</section>
+				)}
+
+				{/* Иконка корзины */}
+				{cartData.med_item_count > 0 ? (
+					<a
+						href={`/pvlc_med_calc/${cartData.med_card_id}`}
+						className='folder-icon'
+					>
+						<img src='/folder.png' alt='Корзина' width='100' height='70' />
+						<span className='notification-badge'>
+							{cartData.med_item_count}
+						</span>
+					</a>
+				) : (
+					<div className='folder-icon inactive'>
+						<img src='/folder.png' alt='Корзина' width='100' height='70' />
+					</div>
 				)}
 			</Container>
 		</Container>

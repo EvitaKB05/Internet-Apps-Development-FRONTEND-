@@ -29,3 +29,10 @@ export interface MedUser {
 	login: string
 	is_moderator: boolean
 }
+
+// НАЧАЛО НОВЫХ ДОБАВЛЕНИЙ - тип для ответа корзины
+export interface CartIconResponse {
+	med_card_id: number
+	med_item_count: number
+}
+// КОНЕЦ НОВЫХ ДОБАВЛЕНИЙ

@@ -1,4 +1,8 @@
-import type { PvlcMedFormula, PvlcMedFormulaFilter } from '../types'
+import type {
+	PvlcMedFormula,
+	PvlcMedFormulaFilter,
+	CartIconResponse,
+} from '../types'
 import { FORMULAS_MOCK } from '../mock/data'
 
 const API_BASE = '/api'
@@ -12,11 +16,17 @@ class ApiService {
 		//
 	}
 
+	// НАЧАЛО ИЗМЕНЕНИЙ - добавляем методы для работы с токеном
+	private getAuthToken(): string | null {
+		// Автоматически берем токен из localStorage
+		return localStorage.getItem('moderator_token')
+	}
+	// КОНЕЦ ИЗМЕНЕНИЙ
+
 	private async ensureBackendChecked(): Promise<void> {
 		if (this.backendChecked) return
 
 		try {
-			// чекнем доступ к бэку
 			const response = await fetch(`${API_BASE}/pvlc-med-formulas?limit=1`, {
 				method: 'GET',
 				headers: {
@@ -38,27 +48,65 @@ class ApiService {
 		}
 	}
 
-	//
 	getImageUrl(imagePath: string | null): string {
-		//
 		if (!imagePath || this.useMock) {
 			return '/DefaultImage.jpg'
 		}
-		//
 		return `${MINIO_BASE}/${imagePath}`
 	}
 
-	//
 	isUsingMock(): boolean {
 		return this.useMock
 	}
 
-	async getFormulas(filter?: PvlcMedFormulaFilter): Promise<PvlcMedFormula[]> {
-		//
+	// НАЧАЛО ИЗМЕНЕНИЙ - улучшаем метод для корзины
+	async getCartIcon(): Promise<CartIconResponse> {
 		await this.ensureBackendChecked()
 
 		if (this.useMock) {
-			console.log('Using mock data for getFormulas')
+			return {
+				med_card_id: 1,
+				med_item_count: 3,
+			}
+		}
+
+		try {
+			const token = this.getAuthToken()
+
+			const headers: Record<string, string> = {
+				'Content-Type': 'application/json',
+			}
+
+			// Автоматически добавляем токен если он есть
+			if (token) {
+				headers['Authorization'] = `Bearer ${token}`
+			}
+
+			const response = await fetch(`${API_BASE}/med_card/icon`, {
+				method: 'GET',
+				headers,
+			})
+
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+			}
+
+			const data = await response.json()
+			return data.data || data
+		} catch (error) {
+			console.error('Error fetching cart icon:', error)
+			return {
+				med_card_id: 0,
+				med_item_count: 0,
+			}
+		}
+	}
+	// КОНЕЦ ИЗМЕНЕНИЙ
+
+	async getFormulas(filter?: PvlcMedFormulaFilter): Promise<PvlcMedFormula[]> {
+		await this.ensureBackendChecked()
+
+		if (this.useMock) {
 			let filteredFormulas = [...FORMULAS_MOCK]
 
 			if (filter?.category) {
@@ -94,7 +142,6 @@ class ApiService {
 			return filteredFormulas
 		}
 
-		//
 		try {
 			const params = new URLSearchParams()
 			if (filter?.category) params.append('category', filter.category)
@@ -119,23 +166,18 @@ class ApiService {
 			return data.data || []
 		} catch (error) {
 			console.error('Error fetching formulas:', error)
-			//
 			this.useMock = true
-			//
 			return this.getFormulas(filter)
 		}
 	}
 
 	async getFormulaById(id: number): Promise<PvlcMedFormula | null> {
-		//
 		await this.ensureBackendChecked()
 
 		if (this.useMock) {
-			console.log('Using mock data for getFormulaById')
 			return FORMULAS_MOCK.find(formula => formula.id === id) || null
 		}
 
-		//
 		try {
 			const response = await fetch(`${API_BASE}/pvlc-med-formulas/${id}`, {
 				method: 'GET',
@@ -152,54 +194,44 @@ class ApiService {
 			return data.data || null
 		} catch (error) {
 			console.error('Error fetching formula:', error)
-			//
 			this.useMock = true
-			//
 			return this.getFormulaById(id)
 		}
 	}
 
 	async getCategories(): Promise<string[]> {
-		//
 		await this.ensureBackendChecked()
 
 		if (this.useMock) {
-			//
 			const categories = [...new Set(FORMULAS_MOCK.map(f => f.category))]
 			return categories
 		}
 
 		try {
-			//
 			const formulas = await this.getFormulas()
 			const categories = [...new Set(formulas.map(f => f.category))]
 			return categories
 		} catch (error) {
 			console.error('Error getting categories:', error)
-			//
 			const categories = [...new Set(FORMULAS_MOCK.map(f => f.category))]
 			return categories
 		}
 	}
 
 	async getGenders(): Promise<string[]> {
-		//
 		await this.ensureBackendChecked()
 
 		if (this.useMock) {
-			//
 			const genders = [...new Set(FORMULAS_MOCK.map(f => f.gender))]
 			return genders
 		}
 
 		try {
-			//
 			const formulas = await this.getFormulas()
 			const genders = [...new Set(formulas.map(f => f.gender))]
 			return genders
 		} catch (error) {
 			console.error('Error getting genders:', error)
-			//
 			const genders = [...new Set(FORMULAS_MOCK.map(f => f.gender))]
 			return genders
 		}
