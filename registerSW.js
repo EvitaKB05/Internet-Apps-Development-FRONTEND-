@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/Internet-Apps-Development-FRONTEND-/sw.js', { scope: '/Internet-Apps-Development-FRONTEND-/' })})}
