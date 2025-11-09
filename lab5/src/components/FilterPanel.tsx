@@ -1,30 +1,34 @@
 import React from 'react'
 import { Form, Row, Col, Button } from 'react-bootstrap'
 import type { PvlcMedFormulaFilter } from '../types'
+import { useAppDispatch, useAppSelector } from '../hooks/redux'
+import { setFilter, resetFilters } from '../store/slices/filterSlice'
 
 interface FilterPanelProps {
-	filter: PvlcMedFormulaFilter
-	onFilterChange: (filter: PvlcMedFormulaFilter) => void
 	categories: string[]
 	genders: string[]
-	onReset: () => void
 }
 
-const FilterPanel: React.FC<FilterPanelProps> = ({
-	filter,
-	onFilterChange,
-	categories,
-	genders,
-	onReset,
-}) => {
+const FilterPanel: React.FC<FilterPanelProps> = ({ categories, genders }) => {
+	const dispatch = useAppDispatch()
+
+	// ИЗМЕНЕНИЕ: Правильное извлечение состояния с типизацией
+	const filter = useAppSelector(state => state.filters.filter)
+
 	const handleInputChange = (
 		field: keyof PvlcMedFormulaFilter,
 		value: string | number | boolean | undefined
 	) => {
-		onFilterChange({
-			...filter,
-			[field]: value,
-		})
+		dispatch(
+			setFilter({
+				...filter,
+				[field]: value,
+			})
+		)
+	}
+
+	const handleReset = () => {
+		dispatch(resetFilters())
 	}
 
 	return (
@@ -107,7 +111,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 					<Col md={2} className='d-flex align-items-end'>
 						<Button
 							variant='outline-secondary'
-							onClick={onReset}
+							onClick={handleReset}
 							className='w-100'
 						>
 							Сбросить
