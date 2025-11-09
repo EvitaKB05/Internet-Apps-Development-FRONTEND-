@@ -7,14 +7,14 @@ import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import { setSearchTerm, resetFilters } from '../store/slices/filterSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import FormulaCard from '../components/FormulaCard'
-import FilterPanel from '../components/FilterPanel'
+// import FilterPanel from '../components/FilterPanel' // КОММЕНТИРУЕМ ИМПОРТ
 
 const PvlcPatientsPage: React.FC = () => {
 	const dispatch = useAppDispatch()
 
 	// Получаем состояние фильтров из Redux
 	const searchTerm = useAppSelector(state => state.filters.searchTerm)
-	const filter = useAppSelector(state => state.filters.filter)
+	//const filter = useAppSelector(state => state.filters.filter)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [formulas, setFormulas] = useState<PvlcMedFormula[]>([])
@@ -22,8 +22,8 @@ const PvlcPatientsPage: React.FC = () => {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [inputValue, setInputValue] = useState('')
-	const [categories, setCategories] = useState<string[]>([])
-	const [genders, setGenders] = useState<string[]>([])
+	//const [categories, setCategories] = useState<string[]>([])
+	//const [genders, setGenders] = useState<string[]>([])
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
 	const [cartData, setCartData] = useState<CartIconResponse>({
@@ -37,15 +37,15 @@ const PvlcPatientsPage: React.FC = () => {
 	// Загружаем формулы при изменении фильтров
 	useEffect(() => {
 		loadFormulas()
-		loadCategories()
-		loadGenders()
+		// loadCategories() // КОММЕНТИРУЕМ - больше не нужны для фильтров
+		// loadGenders()   // КОММЕНТИРУЕМ - больше не нужны для фильтров
 		loadCartIcon()
 	}, []) // Загружаем только при первом рендере
 
-	// Загружаем формулы при изменении фильтров
-	useEffect(() => {
-		loadFormulas()
-	}, [filter]) // Загружаем заново при изменении фильтров
+	// КОММЕНТИРУЕМ - больше не загружаем при изменении фильтров
+	// useEffect(() => {
+	//   loadFormulas()
+	// }, [filter])
 
 	useEffect(() => {
 		// Синхронизация Redux с URL параметрами
@@ -60,23 +60,24 @@ const PvlcPatientsPage: React.FC = () => {
 		applyFilters()
 	}, [formulas, searchTerm]) // Применяем фильтры при изменении формул или поискового запроса
 
-	const loadCategories = async () => {
-		try {
-			const categoriesData = await apiService.getCategories()
-			setCategories(categoriesData)
-		} catch (error) {
-			console.error('Error loading categories:', error)
-		}
-	}
+	// КОММЕНТИРУЕМ - больше не нужны
+	// const loadCategories = async () => {
+	//   try {
+	//     const categoriesData = await apiService.getCategories()
+	//     setCategories(categoriesData)
+	//   } catch (error) {
+	//     console.error('Error loading categories:', error)
+	//   }
+	// }
 
-	const loadGenders = async () => {
-		try {
-			const gendersData = await apiService.getGenders()
-			setGenders(gendersData)
-		} catch (error) {
-			console.error('Error loading genders:', error)
-		}
-	}
+	// const loadGenders = async () => {
+	//   try {
+	//     const gendersData = await apiService.getGenders()
+	//     setGenders(gendersData)
+	//   } catch (error) {
+	//     console.error('Error loading genders:', error)
+	//   }
+	// }
 
 	const loadCartIcon = async () => {
 		try {
@@ -91,8 +92,8 @@ const PvlcPatientsPage: React.FC = () => {
 		try {
 			setLoading(true)
 			setError(null)
-			// Передаем текущие фильтры в API запрос
-			const data = await apiService.getFormulas(filter)
+			// Загружаем ВСЕ формулы (без фильтров)
+			const data = await apiService.getFormulas()
 			setFormulas(data)
 		} catch (err) {
 			setError('Ошибка загрузки категорий пациентов')
@@ -105,7 +106,7 @@ const PvlcPatientsPage: React.FC = () => {
 	const applyFilters = () => {
 		let filtered = [...formulas]
 
-		// Применяем текстовый поиск (клиентская фильтрация)
+		// Применяем ТОЛЬКО текстовый поиск (клиентская фильтрация)
 		if (searchTerm) {
 			filtered = filtered.filter(
 				formula =>
@@ -114,20 +115,19 @@ const PvlcPatientsPage: React.FC = () => {
 			)
 		}
 
-		// ИСПРАВЛЕНИЕ: Дополнительная клиентская фильтрация с проверкой на undefined
-		if (filter.category) {
-			filtered = filtered.filter(f => f.category === filter.category)
-		}
-		if (filter.gender) {
-			filtered = filtered.filter(f => f.gender === filter.gender)
-		}
-		// ИСПРАВЛЕНИЕ: Добавляем проверку на undefined для числовых полей
-		if (filter.min_age !== undefined) {
-			filtered = filtered.filter(f => f.min_age >= filter.min_age!)
-		}
-		if (filter.max_age !== undefined) {
-			filtered = filtered.filter(f => f.max_age <= filter.max_age!)
-		}
+		// КОММЕНТИРУЕМ все остальные фильтры - оставляем только поиск
+		// if (filter.category) {
+		//   filtered = filtered.filter(f => f.category === filter.category)
+		// }
+		// if (filter.gender) {
+		//   filtered = filtered.filter(f => f.gender === filter.gender)
+		// }
+		// if (filter.min_age !== undefined) {
+		//   filtered = filtered.filter(f => f.min_age >= filter.min_age!)
+		// }
+		// if (filter.max_age !== undefined) {
+		//   filtered = filtered.filter(f => f.max_age <= filter.max_age!)
+		// }
 
 		setFilteredFormulas(filtered)
 	}
@@ -157,15 +157,15 @@ const PvlcPatientsPage: React.FC = () => {
 		}
 	}
 
-	// ИСПРАВЛЕНИЕ: Добавляем отладочную информацию
-	useEffect(() => {
-		console.log('🔍 DEBUG FILTERS:')
-		console.log('Current filter:', filter)
-		console.log('Current searchTerm:', searchTerm)
-		console.log('All formulas:', formulas.length)
-		console.log('Filtered formulas:', filteredFormulas.length)
-		console.log('---')
-	}, [filter, searchTerm, formulas, filteredFormulas])
+	// КОММЕНТИРУЕМ отладочную информацию
+	// useEffect(() => {
+	//   console.log('🔍 DEBUG FILTERS:')
+	//   console.log('Current filter:', filter)
+	//   console.log('Current searchTerm:', searchTerm)
+	//   console.log('All formulas:', formulas.length)
+	//   console.log('Filtered formulas:', filteredFormulas.length)
+	//   console.log('---')
+	// }, [filter, searchTerm, formulas, filteredFormulas])
 
 	if (loading) {
 		return (
@@ -199,22 +199,19 @@ const PvlcPatientsPage: React.FC = () => {
 					</Alert>
 				)}
 
-				{/* Добавляем панель фильтров */}
-				<FilterPanel categories={categories} genders={genders} />
+				{/* КОММЕНТИРУЕМ панель фильтров */}
+				{/* <FilterPanel categories={categories} genders={genders} /> */}
 
-				{/* Показываем активные фильтры */}
-				{(filter.category ||
-					filter.gender ||
-					filter.min_age !== undefined ||
-					filter.max_age !== undefined) && (
-					<Alert variant='info' className='mb-3'>
-						Активные фильтры:
-						{filter.category && ` Категория: ${filter.category}`}
-						{filter.gender && ` Пол: ${filter.gender}`}
-						{filter.min_age !== undefined && ` Возраст от: ${filter.min_age}`}
-						{filter.max_age !== undefined && ` Возраст до: ${filter.max_age}`}
-					</Alert>
-				)}
+				{/* КОММЕНТИРУЕМ сообщения о активных фильтрах */}
+				{/* {(filter.category || filter.gender || filter.min_age !== undefined || filter.max_age !== undefined) && (
+          <Alert variant='info' className='mb-3'>
+            Активные фильтры: 
+            {filter.category && ` Категория: ${filter.category}`}
+            {filter.gender && ` Пол: ${filter.gender}`}
+            {filter.min_age !== undefined && ` Возраст от: ${filter.min_age}`}
+            {filter.max_age !== undefined && ` Возраст до: ${filter.max_age}`}
+          </Alert>
+        )} */}
 
 				<section className='search-section'>
 					<Form onSubmit={handleSearchSubmit} className='search-form'>
@@ -237,12 +234,8 @@ const PvlcPatientsPage: React.FC = () => {
 
 				{filteredFormulas.length === 0 ? (
 					<Alert variant='info'>
-						{searchTerm ||
-						filter.category ||
-						filter.gender ||
-						filter.min_age !== undefined ||
-						filter.max_age !== undefined
-							? `По заданным параметрам категории не найдены. Попробуйте изменить параметры поиска.`
+						{searchTerm
+							? `По запросу "${searchTerm}" категории не найдены. Попробуйте изменить параметры поиска.`
 							: 'Категории не найдены.'}
 					</Alert>
 				) : (
