@@ -4,28 +4,19 @@ import type {
 	CartIconResponse,
 } from '../types'
 import { FORMULAS_MOCK } from '../mock/data'
+import { getApiBase, getMinioBase, getIsTauri } from '../target_config'
 
 class ApiService {
-	private useMock = true // ИЗМЕНЕНИЕ: по умолчанию используем моки на GitHub Pages
+	private useMock = false
 	private backendChecked = false
 
-	// ИЗМЕНЕНИЕ: Определяем базовый URL в зависимости от окружения
+	// Используем конфигурацию из target_config
 	private getApiBase(): string {
-		// На GitHub Pages нет бэкенда, всегда используем моки
-		if (window.location.hostname.includes('github.io')) {
-			this.useMock = true
-			return ''
-		}
-		// В development используем proxy
-		return '/api'
+		return getApiBase()
 	}
 
 	private getMinioBase(): string {
-		// На GitHub Pages изображения не доступны, используем заглушки
-		if (window.location.hostname.includes('github.io')) {
-			return ''
-		}
-		return 'http://localhost:9000/pics'
+		return getMinioBase()
 	}
 
 	private getAuthToken(): string | null {
@@ -35,7 +26,15 @@ class ApiService {
 	private async ensureBackendChecked(): Promise<void> {
 		if (this.backendChecked) return
 
-		// ИЗМЕНЕНИЕ: На GitHub Pages пропускаем проверку бэкенда
+		// Для Tauri пропускаем проверку бэкенда
+		if (getIsTauri()) {
+			this.useMock = false
+			this.backendChecked = true
+			console.log('Tauri environment, skipping backend check')
+			return
+		}
+
+		// Для GitHub Pages используем моки
 		if (window.location.hostname.includes('github.io')) {
 			this.useMock = true
 			this.backendChecked = true
@@ -69,13 +68,8 @@ class ApiService {
 	}
 
 	getImageUrl(imagePath: string | null): string {
-		// ИЗМЕНЕНИЕ: На GitHub Pages используем заглушку для изображений
-		if (
-			!imagePath ||
-			this.useMock ||
-			window.location.hostname.includes('github.io')
-		) {
-			return '/Internet-Apps-Development-FRONTEND-/DefaultImage.jpg'
+		if (!imagePath || this.useMock) {
+			return './DefaultImage.jpg'
 		}
 		return `${this.getMinioBase()}/${imagePath}`
 	}
@@ -87,16 +81,16 @@ class ApiService {
 	async getCartIcon(): Promise<CartIconResponse> {
 		await this.ensureBackendChecked()
 
-		// ИЗМЕНЕНИЕ: На GitHub Pages возвращаем mock данные
-		if (this.useMock || window.location.hostname.includes('github.io')) {
+		if (this.useMock) {
 			return {
-				med_card_id: 0, // На GitHub Pages корзина пустая
-				med_item_count: 0,
+				med_card_id: 1,
+				med_item_count: 3,
 			}
 		}
 
 		try {
 			const token = this.getAuthToken()
+
 			const headers: Record<string, string> = {
 				'Content-Type': 'application/json',
 			}
@@ -128,11 +122,9 @@ class ApiService {
 	async getFormulas(filter?: PvlcMedFormulaFilter): Promise<PvlcMedFormula[]> {
 		await this.ensureBackendChecked()
 
-		// ИЗМЕНЕНИЕ: Всегда используем моки на GitHub Pages
-		if (this.useMock || window.location.hostname.includes('github.io')) {
+		if (this.useMock) {
 			let filteredFormulas = [...FORMULAS_MOCK]
 
-			// Применяем фильтры к мок-данным
 			if (filter?.category) {
 				filteredFormulas = filteredFormulas.filter(
 					f => f.category === filter.category
@@ -201,7 +193,7 @@ class ApiService {
 	async getFormulaById(id: number): Promise<PvlcMedFormula | null> {
 		await this.ensureBackendChecked()
 
-		if (this.useMock || window.location.hostname.includes('github.io')) {
+		if (this.useMock) {
 			return FORMULAS_MOCK.find(formula => formula.id === id) || null
 		}
 
@@ -232,7 +224,7 @@ class ApiService {
 	async getCategories(): Promise<string[]> {
 		await this.ensureBackendChecked()
 
-		if (this.useMock || window.location.hostname.includes('github.io')) {
+		if (this.useMock) {
 			const categories = [...new Set(FORMULAS_MOCK.map(f => f.category))]
 			return categories
 		}
@@ -251,7 +243,7 @@ class ApiService {
 	async getGenders(): Promise<string[]> {
 		await this.ensureBackendChecked()
 
-		if (this.useMock || window.location.hostname.includes('github.io')) {
+		if (this.useMock) {
 			const genders = [...new Set(FORMULAS_MOCK.map(f => f.gender))]
 			return genders
 		}
