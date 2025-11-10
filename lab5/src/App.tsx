@@ -10,7 +10,8 @@ import './App.css'
 
 const App: React.FC = () => {
 	return (
-		<Router>
+		// ИЗМЕНЕНИЕ: Добавляем basename для GitHub Pages
+		<Router basename='/Internet-Apps-Development-FRONTEND-/'>
 			<div className='App'>
 				<CustomNavbar />
 				<main>

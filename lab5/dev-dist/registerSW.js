@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/Internet-Apps-Development-FRONTEND-/dev-sw.js?dev-sw', { scope: '/Internet-Apps-Development-FRONTEND-/', type: 'classic' })

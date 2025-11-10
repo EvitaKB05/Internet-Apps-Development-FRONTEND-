@@ -10,7 +10,7 @@ const CustomNavbar: React.FC = () => {
 			<Container>
 				<Navbar.Brand as={Link} to='/pvlc_home_page'>
 					<img
-						src='/lung.png'
+						src='/Internet-Apps-Development-FRONTEND-/lung.png'
 						width='30'
 						height='30'
 						className='d-inline-block align-top me-2'

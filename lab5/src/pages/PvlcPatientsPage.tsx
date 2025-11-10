@@ -254,7 +254,12 @@ const PvlcPatientsPage: React.FC = () => {
 						href={`/pvlc_med_calc/${cartData.med_card_id}`}
 						className='folder-icon'
 					>
-						<img src='/folder.png' alt='Корзина' width='100' height='70' />
+						<img
+							src='/Internet-Apps-Development-FRONTEND-/folder.png'
+							alt='Корзина'
+							width='100'
+							height='70'
+						/>
 						<span className='notification-badge'>
 							{cartData.med_item_count}
 						</span>

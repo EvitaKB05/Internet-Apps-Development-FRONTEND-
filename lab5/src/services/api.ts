@@ -5,34 +5,54 @@ import type {
 } from '../types'
 import { FORMULAS_MOCK } from '../mock/data'
 
-const API_BASE = '/api'
-const MINIO_BASE = 'http://localhost:9000/pics'
-
 class ApiService {
-	private useMock = false
+	private useMock = true // ИЗМЕНЕНИЕ: по умолчанию используем моки на GitHub Pages
 	private backendChecked = false
 
-	constructor() {
-		//
+	// ИЗМЕНЕНИЕ: Определяем базовый URL в зависимости от окружения
+	private getApiBase(): string {
+		// На GitHub Pages нет бэкенда, всегда используем моки
+		if (window.location.hostname.includes('github.io')) {
+			this.useMock = true
+			return ''
+		}
+		// В development используем proxy
+		return '/api'
 	}
 
-	// НАЧАЛО ИЗМЕНЕНИЙ - добавляем методы для работы с токеном
+	private getMinioBase(): string {
+		// На GitHub Pages изображения не доступны, используем заглушки
+		if (window.location.hostname.includes('github.io')) {
+			return ''
+		}
+		return 'http://localhost:9000/pics'
+	}
+
 	private getAuthToken(): string | null {
-		// Автоматически берем токен из localStorage
 		return localStorage.getItem('moderator_token')
 	}
-	// КОНЕЦ ИЗМЕНЕНИЙ
 
 	private async ensureBackendChecked(): Promise<void> {
 		if (this.backendChecked) return
 
+		// ИЗМЕНЕНИЕ: На GitHub Pages пропускаем проверку бэкенда
+		if (window.location.hostname.includes('github.io')) {
+			this.useMock = true
+			this.backendChecked = true
+			console.log('GitHub Pages environment, using mock data')
+			return
+		}
+
 		try {
-			const response = await fetch(`${API_BASE}/pvlc-med-formulas?limit=1`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			})
+			const response = await fetch(
+				`${this.getApiBase()}/pvlc-med-formulas?limit=1`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			)
 
 			if (!response.ok) {
 				throw new Error('Backend not available')
@@ -49,40 +69,43 @@ class ApiService {
 	}
 
 	getImageUrl(imagePath: string | null): string {
-		if (!imagePath || this.useMock) {
-			return '/DefaultImage.jpg'
+		// ИЗМЕНЕНИЕ: На GitHub Pages используем заглушку для изображений
+		if (
+			!imagePath ||
+			this.useMock ||
+			window.location.hostname.includes('github.io')
+		) {
+			return '/Internet-Apps-Development-FRONTEND-/DefaultImage.jpg'
 		}
-		return `${MINIO_BASE}/${imagePath}`
+		return `${this.getMinioBase()}/${imagePath}`
 	}
 
 	isUsingMock(): boolean {
 		return this.useMock
 	}
 
-	// НАЧАЛО ИЗМЕНЕНИЙ - улучшаем метод для корзины
 	async getCartIcon(): Promise<CartIconResponse> {
 		await this.ensureBackendChecked()
 
-		if (this.useMock) {
+		// ИЗМЕНЕНИЕ: На GitHub Pages возвращаем mock данные
+		if (this.useMock || window.location.hostname.includes('github.io')) {
 			return {
-				med_card_id: 1,
-				med_item_count: 3,
+				med_card_id: 0, // На GitHub Pages корзина пустая
+				med_item_count: 0,
 			}
 		}
 
 		try {
 			const token = this.getAuthToken()
-
 			const headers: Record<string, string> = {
 				'Content-Type': 'application/json',
 			}
 
-			// Автоматически добавляем токен если он есть
 			if (token) {
 				headers['Authorization'] = `Bearer ${token}`
 			}
 
-			const response = await fetch(`${API_BASE}/med_card/icon`, {
+			const response = await fetch(`${this.getApiBase()}/med_card/icon`, {
 				method: 'GET',
 				headers,
 			})
@@ -101,14 +124,15 @@ class ApiService {
 			}
 		}
 	}
-	// КОНЕЦ ИЗМЕНЕНИЙ
 
 	async getFormulas(filter?: PvlcMedFormulaFilter): Promise<PvlcMedFormula[]> {
 		await this.ensureBackendChecked()
 
-		if (this.useMock) {
+		// ИЗМЕНЕНИЕ: Всегда используем моки на GitHub Pages
+		if (this.useMock || window.location.hostname.includes('github.io')) {
 			let filteredFormulas = [...FORMULAS_MOCK]
 
+			// Применяем фильтры к мок-данным
 			if (filter?.category) {
 				filteredFormulas = filteredFormulas.filter(
 					f => f.category === filter.category
@@ -121,13 +145,13 @@ class ApiService {
 				)
 			}
 
-			if (filter?.min_age) {
+			if (filter?.min_age !== undefined) {
 				filteredFormulas = filteredFormulas.filter(
 					f => f.min_age >= filter.min_age!
 				)
 			}
 
-			if (filter?.max_age) {
+			if (filter?.max_age !== undefined) {
 				filteredFormulas = filteredFormulas.filter(
 					f => f.max_age <= filter.max_age!
 				)
@@ -151,12 +175,15 @@ class ApiService {
 			if (filter?.active !== undefined)
 				params.append('active', filter.active.toString())
 
-			const response = await fetch(`${API_BASE}/pvlc-med-formulas?${params}`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			})
+			const response = await fetch(
+				`${this.getApiBase()}/pvlc-med-formulas?${params}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			)
 
 			if (!response.ok) {
 				throw new Error('Failed to fetch formulas')
@@ -174,17 +201,20 @@ class ApiService {
 	async getFormulaById(id: number): Promise<PvlcMedFormula | null> {
 		await this.ensureBackendChecked()
 
-		if (this.useMock) {
+		if (this.useMock || window.location.hostname.includes('github.io')) {
 			return FORMULAS_MOCK.find(formula => formula.id === id) || null
 		}
 
 		try {
-			const response = await fetch(`${API_BASE}/pvlc-med-formulas/${id}`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			})
+			const response = await fetch(
+				`${this.getApiBase()}/pvlc-med-formulas/${id}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			)
 
 			if (!response.ok) {
 				throw new Error('Failed to fetch formula')
@@ -202,7 +232,7 @@ class ApiService {
 	async getCategories(): Promise<string[]> {
 		await this.ensureBackendChecked()
 
-		if (this.useMock) {
+		if (this.useMock || window.location.hostname.includes('github.io')) {
 			const categories = [...new Set(FORMULAS_MOCK.map(f => f.category))]
 			return categories
 		}
@@ -221,7 +251,7 @@ class ApiService {
 	async getGenders(): Promise<string[]> {
 		await this.ensureBackendChecked()
 
-		if (this.useMock) {
+		if (this.useMock || window.location.hostname.includes('github.io')) {
 			const genders = [...new Set(FORMULAS_MOCK.map(f => f.gender))]
 			return genders
 		}
