@@ -26,11 +26,11 @@ class ApiService {
 	private async ensureBackendChecked(): Promise<void> {
 		if (this.backendChecked) return
 
-		// Для Tauri пропускаем проверку бэкенда
+		// Для Tauri используем реальный бэкенд
 		if (getIsTauri()) {
 			this.useMock = false
 			this.backendChecked = true
-			console.log('Tauri environment, skipping backend check')
+			console.log('Tauri environment, using direct backend connection')
 			return
 		}
 

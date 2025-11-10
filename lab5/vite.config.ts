@@ -12,7 +12,7 @@ export default defineConfig({
 			},
 			workbox: {
 				globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,woff,woff2}'],
-				maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 МБ
+				maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
 			},
 			manifest: {
 				name: 'Лёгкая Жизнь - Расчет ДЖЕЛ',
@@ -23,11 +23,11 @@ export default defineConfig({
 				background_color: '#f8f9fa',
 				display: 'standalone',
 				orientation: 'portrait',
-				start_url: '/Internet-Apps-Development-FRONTEND-/',
-				scope: '/Internet-Apps-Development-FRONTEND-/',
+				start_url: '.',
+				scope: '.',
 				icons: [
 					{
-						src: '/Internet-Apps-Development-FRONTEND-/lung-192x192.png',
+						src: './lung-192x192.png',
 						sizes: '192x192',
 						type: 'image/png',
 						purpose: 'any maskable',
@@ -48,9 +48,15 @@ export default defineConfig({
 			},
 		},
 	},
-	base: '/Internet-Apps-Development-FRONTEND-/',
-	// ИСПРАВЛЕНИЕ: Упрощаем настройку сборки
+	// ИСПРАВЛЕНИЕ: Всегда используем относительные пути для Tauri
+	base: './',
 	build: {
 		assetsDir: 'assets',
+		// ИСПРАВЛЕНИЕ: Отключаем хеши в именах файлов для Tauri
+		rollupOptions: {
+			output: {
+				assetFileNames: 'assets/[name].[ext]',
+			},
+		},
 	},
 })
