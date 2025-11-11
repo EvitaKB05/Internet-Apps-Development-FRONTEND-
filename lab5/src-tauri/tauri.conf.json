@@ -1,11 +1,16 @@
 {
+	"plugins": {
+		"http": {
+			"enabled": true
+		}
+	},
 	"$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
 	"productName": "Лёгкая Жизнь - Расчет ДЖЕЛ",
 	"version": "0.1.0",
 	"identifier": "com.lunglife.app",
 	"build": {
 		"frontendDist": "../dist",
-		"devUrl": "http://localhost:3000",
+		"devUrl": "https://172.16.231.105:3000",
 		"beforeDevCommand": "npm run dev",
 		"beforeBuildCommand": "npm run build"
 	},
