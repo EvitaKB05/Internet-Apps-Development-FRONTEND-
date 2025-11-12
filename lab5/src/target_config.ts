@@ -1,7 +1,7 @@
 // Конфигурация для определения среды выполнения и URL
 
 // Безопасная проверка на Tauri environment
-const isTauri = typeof window !== 'undefined' && window.__TAURI__ !== undefined
+const isTauri = false
 
 // Базовые URL для API и изображений
 // ДЛЯ TAURI: используем прямой IP адрес бэкенда

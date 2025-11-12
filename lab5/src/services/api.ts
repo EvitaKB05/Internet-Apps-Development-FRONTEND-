@@ -83,8 +83,8 @@ class ApiService {
 
 		if (this.useMock) {
 			return {
-				med_card_id: 1,
-				med_item_count: 3,
+				med_card_id: 0,
+				med_item_count: 0,
 			}
 		}
 

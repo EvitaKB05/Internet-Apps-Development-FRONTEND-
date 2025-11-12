@@ -10,11 +10,14 @@
 	"identifier": "com.lunglife.app",
 	"build": {
 		"frontendDist": "../dist",
-		"devUrl": "https://172.16.231.105:3000",
+		"devUrl": "https://169.254.54.75:3000",
 		"beforeDevCommand": "npm run dev",
 		"beforeBuildCommand": "npm run build"
 	},
 	"app": {
+		"security": {
+			"csp": null
+		},
 		"windows": [
 			{
 				"title": "Лёгкая Жизнь - Расчет ДЖЕЛ",
@@ -24,7 +27,7 @@
 				"devtools": true
 			}
 		],
-		"withGlobalTauri": false
+		"withGlobalTauri": true
 	},
 	"bundle": {
 		"active": true,

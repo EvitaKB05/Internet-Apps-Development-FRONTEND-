@@ -31,53 +31,32 @@ const PvlcPatientsPage: React.FC = () => {
 		med_item_count: 0,
 	})
 
-	// Синхронизация с URL параметрами
-	const urlSearchTerm = searchParams.get('search') || ''
-
-	// Загружаем формулы при изменении фильтров
+	// Загружаем формулы при первом рендере
 	useEffect(() => {
 		loadFormulas()
-		// loadCategories() // КОММЕНТИРУЕМ - больше не нужны для фильтров
-		// loadGenders()   // КОММЕНТИРУЕМ - больше не нужны для фильтров
 		loadCartIcon()
 	}, []) // Загружаем только при первом рендере
 
-	// КОММЕНТИРУЕМ - больше не загружаем при изменении фильтров
-	// useEffect(() => {
-	//   loadFormulas()
-	// }, [filter])
-
+	// ИНИЦИАЛИЗАЦИЯ: Восстанавливаем поиск ТОЛЬКО из URL параметров при первом рендере
 	useEffect(() => {
-		// Синхронизация Redux с URL параметрами
-		if (urlSearchTerm !== searchTerm) {
+		const urlSearchTerm = searchParams.get('search') || ''
+
+		// Синхронизируем Redux с URL параметрами только при первом рендере
+		if (urlSearchTerm && urlSearchTerm !== searchTerm) {
 			dispatch(setSearchTerm(urlSearchTerm))
 			setInputValue(urlSearchTerm)
 		}
-	}, [urlSearchTerm, searchTerm, dispatch])
+	}, []) // Только при первом рендере
+
+	// Синхронизация inputValue с searchTerm из Redux
+	useEffect(() => {
+		setInputValue(searchTerm)
+	}, [searchTerm])
 
 	// Применяем фильтры к уже загруженным данным
 	useEffect(() => {
 		applyFilters()
 	}, [formulas, searchTerm]) // Применяем фильтры при изменении формул или поискового запроса
-
-	// КОММЕНТИРУЕМ - больше не нужны
-	// const loadCategories = async () => {
-	//   try {
-	//     const categoriesData = await apiService.getCategories()
-	//     setCategories(categoriesData)
-	//   } catch (error) {
-	//     console.error('Error loading categories:', error)
-	//   }
-	// }
-
-	// const loadGenders = async () => {
-	//   try {
-	//     const gendersData = await apiService.getGenders()
-	//     setGenders(gendersData)
-	//   } catch (error) {
-	//     console.error('Error loading genders:', error)
-	//   }
-	// }
 
 	const loadCartIcon = async () => {
 		try {
@@ -115,20 +94,6 @@ const PvlcPatientsPage: React.FC = () => {
 			)
 		}
 
-		// КОММЕНТИРУЕМ все остальные фильтры - оставляем только поиск
-		// if (filter.category) {
-		//   filtered = filtered.filter(f => f.category === filter.category)
-		// }
-		// if (filter.gender) {
-		//   filtered = filtered.filter(f => f.gender === filter.gender)
-		// }
-		// if (filter.min_age !== undefined) {
-		//   filtered = filtered.filter(f => f.min_age >= filter.min_age!)
-		// }
-		// if (filter.max_age !== undefined) {
-		//   filtered = filtered.filter(f => f.max_age <= filter.max_age!)
-		// }
-
 		setFilteredFormulas(filtered)
 	}
 
@@ -138,34 +103,24 @@ const PvlcPatientsPage: React.FC = () => {
 
 	const handleSearchSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		dispatch(setSearchTerm(inputValue))
-
+		// Обновляем URL только при отправке формы
 		if (inputValue) {
 			setSearchParams({ search: inputValue })
 		} else {
 			setSearchParams({})
 		}
+		dispatch(setSearchTerm(inputValue))
 	}
 
 	const handleClearSearch = () => {
 		dispatch(setSearchTerm(''))
 		dispatch(resetFilters())
-		setSearchParams({})
 		setInputValue('')
+		setSearchParams({})
 		if (searchInputRef.current) {
 			searchInputRef.current.focus()
 		}
 	}
-
-	// КОММЕНТИРУЕМ отладочную информацию
-	// useEffect(() => {
-	//   console.log('🔍 DEBUG FILTERS:')
-	//   console.log('Current filter:', filter)
-	//   console.log('Current searchTerm:', searchTerm)
-	//   console.log('All formulas:', formulas.length)
-	//   console.log('Filtered formulas:', filteredFormulas.length)
-	//   console.log('---')
-	// }, [filter, searchTerm, formulas, filteredFormulas])
 
 	if (loading) {
 		return (
@@ -198,20 +153,6 @@ const PvlcPatientsPage: React.FC = () => {
 						{error}
 					</Alert>
 				)}
-
-				{/* КОММЕНТИРУЕМ панель фильтров */}
-				{/* <FilterPanel categories={categories} genders={genders} /> */}
-
-				{/* КОММЕНТИРУЕМ сообщения о активных фильтрах */}
-				{/* {(filter.category || filter.gender || filter.min_age !== undefined || filter.max_age !== undefined) && (
-          <Alert variant='info' className='mb-3'>
-            Активные фильтры: 
-            {filter.category && ` Категория: ${filter.category}`}
-            {filter.gender && ` Пол: ${filter.gender}`}
-            {filter.min_age !== undefined && ` Возраст от: ${filter.min_age}`}
-            {filter.max_age !== undefined && ` Возраст до: ${filter.max_age}`}
-          </Alert>
-        )} */}
 
 				<section className='search-section'>
 					<Form onSubmit={handleSearchSubmit} className='search-form'>

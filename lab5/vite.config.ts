@@ -56,6 +56,9 @@ export default defineConfig({
 				secure: false,
 			},
 		},
+		watch: {
+			usePolling: true,
+		},
 	},
 	// ИСПРАВЛЕНИЕ: Всегда используем относительные пути для Tauri
 	base: './',
