@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react'
+// src/pages/PvlcPatientsPage.tsx
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Container, Alert, Spinner, Form } from 'react-bootstrap'
 import { useSearchParams } from 'react-router-dom'
-import type { PvlcMedFormula, CartIconResponse } from '../types'
+import type { PvlcMedFormula } from '../types' // ИСПРАВЛЕНИЕ: Убрали неиспользуемый CartIconResponse
 import { apiService } from '../services/api'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import { setSearchTerm, resetFilters } from '../store/slices/filterSlice'
+import { getCartIcon } from '../store/slices/medCartSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import FormulaCard from '../components/FormulaCard'
-// import FilterPanel from '../components/FilterPanel' // КОММЕНТИРУЕМ ИМПОРТ
 
 const PvlcPatientsPage: React.FC = () => {
 	const dispatch = useAppDispatch()
 
 	// Получаем состояние фильтров из Redux
 	const searchTerm = useAppSelector(state => state.filters.searchTerm)
-	//const filter = useAppSelector(state => state.filters.filter)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [formulas, setFormulas] = useState<PvlcMedFormula[]>([])
@@ -22,22 +22,38 @@ const PvlcPatientsPage: React.FC = () => {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [inputValue, setInputValue] = useState('')
-	//const [categories, setCategories] = useState<string[]>([])
-	//const [genders, setGenders] = useState<string[]>([])
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
-	const [cartData, setCartData] = useState<CartIconResponse>({
-		med_card_id: 0,
-		med_item_count: 0,
-	})
+	const { cartId, itemCount } = useAppSelector(state => state.medCart)
+	const { isAuthenticated } = useAppSelector(state => state.auth)
+
+	// ИСПРАВЛЕНИЕ: Вынесем applyFilters в useCallback чтобы избежать exhaustive-deps
+	const applyFilters = useCallback(() => {
+		let filtered = [...formulas]
+
+		// Применяем ТОЛЬКО текстовый поиск (клиентская фильтрация)
+		if (searchTerm) {
+			filtered = filtered.filter(
+				formula =>
+					formula.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					formula.description.toLowerCase().includes(searchTerm.toLowerCase())
+			)
+		}
+
+		setFilteredFormulas(filtered)
+	}, [formulas, searchTerm])
 
 	// Загружаем формулы при первом рендере
+	// ИСПРАВЛЕНИЕ: Добавили dispatch в зависимости
 	useEffect(() => {
 		loadFormulas()
-		loadCartIcon()
-	}, []) // Загружаем только при первом рендере
+		if (isAuthenticated) {
+			dispatch(getCartIcon())
+		}
+	}, [isAuthenticated, dispatch]) // ИСПРАВЛЕНИЕ: Добавлен dispatch в зависимости
 
 	// ИНИЦИАЛИЗАЦИЯ: Восстанавливаем поиск ТОЛЬКО из URL параметров при первом рендере
+	// ИСПРАВЛЕНИЕ: Добавили зависимости
 	useEffect(() => {
 		const urlSearchTerm = searchParams.get('search') || ''
 
@@ -46,7 +62,7 @@ const PvlcPatientsPage: React.FC = () => {
 			dispatch(setSearchTerm(urlSearchTerm))
 			setInputValue(urlSearchTerm)
 		}
-	}, []) // Только при первом рендере
+	}, [searchParams, searchTerm, dispatch]) // ИСПРАВЛЕНИЕ: Добавлены зависимости
 
 	// Синхронизация inputValue с searchTerm из Redux
 	useEffect(() => {
@@ -56,16 +72,7 @@ const PvlcPatientsPage: React.FC = () => {
 	// Применяем фильтры к уже загруженным данным
 	useEffect(() => {
 		applyFilters()
-	}, [formulas, searchTerm]) // Применяем фильтры при изменении формул или поискового запроса
-
-	const loadCartIcon = async () => {
-		try {
-			const data = await apiService.getCartIcon()
-			setCartData(data)
-		} catch (error) {
-			console.error('Error loading cart icon:', error)
-		}
-	}
+	}, [applyFilters])
 
 	const loadFormulas = async () => {
 		try {
@@ -80,21 +87,6 @@ const PvlcPatientsPage: React.FC = () => {
 		} finally {
 			setLoading(false)
 		}
-	}
-
-	const applyFilters = () => {
-		let filtered = [...formulas]
-
-		// Применяем ТОЛЬКО текстовый поиск (клиентская фильтрация)
-		if (searchTerm) {
-			filtered = filtered.filter(
-				formula =>
-					formula.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-					formula.description.toLowerCase().includes(searchTerm.toLowerCase())
-			)
-		}
-
-		setFilteredFormulas(filtered)
 	}
 
 	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,21 +182,17 @@ const PvlcPatientsPage: React.FC = () => {
 				)}
 
 				{/* Иконка корзины */}
-				{cartData.med_item_count > 0 ? (
-					<a
-						href={`/pvlc_med_calc/${cartData.med_card_id}`}
-						className='folder-icon'
-					>
-						<img src='./folder.png' alt='Корзина' width='100' height='70' />
-						<span className='notification-badge'>
-							{cartData.med_item_count}
-						</span>
-					</a>
-				) : (
-					<div className='folder-icon inactive'>
-						<img src='./folder.png' alt='Корзина' width='100' height='70' />
-					</div>
-				)}
+				{isAuthenticated &&
+					(itemCount > 0 ? (
+						<a href={`/pvlc_med_card/${cartId}`} className='folder-icon'>
+							<img src='./folder.png' alt='Корзина' width='100' height='70' />
+							<span className='notification-badge'>{itemCount}</span>
+						</a>
+					) : (
+						<div className='folder-icon inactive'>
+							<img src='./folder.png' alt='Корзина' width='100' height='70' />
+						</div>
+					))}
 			</Container>
 		</Container>
 	)

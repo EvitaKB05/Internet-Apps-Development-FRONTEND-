@@ -10,6 +10,21 @@ const getApiBaseUrl = () => {
 	return 'http://localhost:8080' // Прямое подключение для разработки
 }
 
+// Создаем базовый инстанс API
 export const api = new Api({
 	baseURL: getApiBaseUrl(),
 })
+
+// Функция для создания авторизованного инстанса API
+export const createAuthorizedApi = (token: string) => {
+	return new Api({
+		baseURL: getApiBaseUrl(),
+		securityWorker: () => {
+			return {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			}
+		},
+	})
+}

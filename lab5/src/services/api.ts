@@ -1,3 +1,4 @@
+// src/services/api.ts
 import type {
 	PvlcMedFormula,
 	PvlcMedFormulaFilter,
@@ -5,6 +6,13 @@ import type {
 } from '../types'
 import { FORMULAS_MOCK } from '../mock/data'
 import { getApiBase, getMinioBase, getIsTauri } from '../target_config'
+import { api } from '../api'
+
+// ИСПРАВЛЕНИЕ: Создаем интерфейс для конфигурации API
+interface ApiConfig {
+	baseURL: string
+	securityWorker?: () => { headers: { Authorization: string } }
+}
 
 class ApiService {
 	private useMock = false
@@ -20,7 +28,34 @@ class ApiService {
 	}
 
 	private getAuthToken(): string | null {
-		return localStorage.getItem('moderator_token')
+		return localStorage.getItem('med_token')
+	}
+
+	// ИСПРАВЛЕНИЕ: Правильное создание авторизованного API инстанса без any
+	private getAuthorizedApi() {
+		const token = this.getAuthToken()
+		const config: ApiConfig = {
+			baseURL: this.getApiBase(),
+		}
+
+		// Добавляем заголовок авторизации если токен есть
+		if (token) {
+			// Создаем новый инстанс API с заголовками
+			return new (api.constructor as new (config: ApiConfig) => typeof api)({
+				...config,
+				securityWorker: () => {
+					return {
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				},
+			})
+		}
+
+		return new (api.constructor as new (config: ApiConfig) => typeof api)(
+			config
+		)
 	}
 
 	private async ensureBackendChecked(): Promise<void> {
@@ -43,17 +78,10 @@ class ApiService {
 		}
 
 		try {
-			const response = await fetch(
-				`${this.getApiBase()}/pvlc-med-formulas?limit=1`,
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			)
+			const authorizedApi = this.getAuthorizedApi()
+			const response = await authorizedApi.api.pvlcMedFormulasList()
 
-			if (!response.ok) {
+			if (!response.status) {
 				throw new Error('Backend not available')
 			}
 
@@ -89,27 +117,16 @@ class ApiService {
 		}
 
 		try {
-			const token = this.getAuthToken()
+			const authorizedApi = this.getAuthorizedApi()
+			const response = await authorizedApi.api.medCardIconList()
 
-			const headers: Record<string, string> = {
-				'Content-Type': 'application/json',
+			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
+			const apiData = response.data
+			const cartData: CartIconResponse = {
+				med_card_id: apiData.med_card_id || 0, // Задаем значение по умолчанию
+				med_item_count: apiData.med_item_count || 0, // Задаем значение по умолчанию
 			}
-
-			if (token) {
-				headers['Authorization'] = `Bearer ${token}`
-			}
-
-			const response = await fetch(`${this.getApiBase()}/med_card/icon`, {
-				method: 'GET',
-				headers,
-			})
-
-			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-			}
-
-			const data = await response.json()
-			return data.data || data
+			return cartData
 		} catch (error) {
 			console.error('Error fetching cart icon:', error)
 			return {
@@ -159,30 +176,39 @@ class ApiService {
 		}
 
 		try {
-			const params = new URLSearchParams()
-			if (filter?.category) params.append('category', filter.category)
-			if (filter?.gender) params.append('gender', filter.gender)
-			if (filter?.min_age) params.append('min_age', filter.min_age.toString())
-			if (filter?.max_age) params.append('max_age', filter.max_age.toString())
-			if (filter?.active !== undefined)
-				params.append('active', filter.active.toString())
+			const authorizedApi = this.getAuthorizedApi()
+			const params: {
+				category?: string
+				gender?: string
+				min_age?: number
+				max_age?: number
+				active?: boolean
+			} = {}
 
-			const response = await fetch(
-				`${this.getApiBase()}/pvlc-med-formulas?${params}`,
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			)
+			if (filter?.category) params.category = filter.category
+			if (filter?.gender) params.gender = filter.gender
+			if (filter?.min_age) params.min_age = filter.min_age
+			if (filter?.max_age) params.max_age = filter.max_age
+			if (filter?.active !== undefined) params.active = filter.active
 
-			if (!response.ok) {
-				throw new Error('Failed to fetch formulas')
-			}
+			const response = await authorizedApi.api.pvlcMedFormulasList(params)
 
-			const data = await response.json()
-			return data.data || []
+			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
+			const apiFormulas = response.data
+			const formulas: PvlcMedFormula[] = apiFormulas.map(apiFormula => ({
+				id: apiFormula.id || 0, // Задаем значение по умолчанию
+				title: apiFormula.title || '',
+				description: apiFormula.description || '',
+				formula: apiFormula.formula || '',
+				image_url: apiFormula.image_url || '',
+				category: apiFormula.category || '',
+				gender: apiFormula.gender || '',
+				min_age: apiFormula.min_age || 0,
+				max_age: apiFormula.max_age || 0,
+				is_active: apiFormula.is_active || false,
+			}))
+
+			return formulas
 		} catch (error) {
 			console.error('Error fetching formulas:', error)
 			this.useMock = true
@@ -198,22 +224,27 @@ class ApiService {
 		}
 
 		try {
-			const response = await fetch(
-				`${this.getApiBase()}/pvlc-med-formulas/${id}`,
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			)
+			const authorizedApi = this.getAuthorizedApi()
+			const response = await authorizedApi.api.pvlcMedFormulasDetail(id)
 
-			if (!response.ok) {
-				throw new Error('Failed to fetch formula')
+			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
+			const apiFormula = response.data
+			if (!apiFormula) return null
+
+			const formula: PvlcMedFormula = {
+				id: apiFormula.id || 0, // Задаем значение по умолчанию
+				title: apiFormula.title || '',
+				description: apiFormula.description || '',
+				formula: apiFormula.formula || '',
+				image_url: apiFormula.image_url || '',
+				category: apiFormula.category || '',
+				gender: apiFormula.gender || '',
+				min_age: apiFormula.min_age || 0,
+				max_age: apiFormula.max_age || 0,
+				is_active: apiFormula.is_active || false,
 			}
 
-			const data = await response.json()
-			return data.data || null
+			return formula
 		} catch (error) {
 			console.error('Error fetching formula:', error)
 			this.useMock = true
