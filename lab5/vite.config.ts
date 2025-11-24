@@ -3,10 +3,12 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'fs'
 import path from 'path'
+import mkcert from 'vite-plugin-mkcert'
 
 export default defineConfig({
 	plugins: [
 		react(),
+		mkcert(),
 		VitePWA({
 			registerType: 'autoUpdate',
 			devOptions: {
