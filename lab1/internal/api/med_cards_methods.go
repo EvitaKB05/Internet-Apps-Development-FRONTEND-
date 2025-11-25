@@ -20,14 +20,17 @@ import (
 // @Tags med_card
 // @Produce json
 // @Success 200 {object} ds.CartIconResponse
-// @Failure 401 {object} map[string]string
 // @Router /api/med_card/icon [get]
-// @Security BearerAuth
 func (a *API) GetCartIcon(c *gin.Context) {
-	// Проверка аутентификации выполняется в middleware RequireAuth
+	// ИСПРАВЛЕНИЕ: Корзина доступна без авторизации
+	// Для неавторизованных пользователей возвращаем пустую корзину
 	claims := auth.GetUserFromContext(c)
 	if claims == nil {
-		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		// Неавторизованный пользователь - возвращаем пустую корзину
+		a.successResponse(c, ds.CartIconResponse{
+			MedCardID:    0,
+			MedItemCount: 0,
+		})
 		return
 	}
 

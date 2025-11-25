@@ -51,13 +51,8 @@ export default defineConfig({
 			key: fs.readFileSync(path.resolve(__dirname, 'cert.key')),
 			cert: fs.readFileSync(path.resolve(__dirname, 'cert.crt')),
 		},
-		proxy: {
-			'/api': {
-				target: 'http://localhost:8080',
-				changeOrigin: true,
-				secure: false,
-			},
-		},
+		// ИСПРАВЛЕНИЕ: Убираем прокси, используем прямое подключение
+		proxy: {},
 		watch: {
 			usePolling: true,
 		},

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Container, Alert, Spinner, Form } from 'react-bootstrap'
 import { useSearchParams } from 'react-router-dom'
-import type { PvlcMedFormula } from '../types' // ИСПРАВЛЕНИЕ: Убрали неиспользуемый CartIconResponse
+import type { PvlcMedFormula } from '../types'
 import { apiService } from '../services/api'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
 import { setSearchTerm, resetFilters } from '../store/slices/filterSlice'
@@ -44,13 +44,12 @@ const PvlcPatientsPage: React.FC = () => {
 	}, [formulas, searchTerm])
 
 	// Загружаем формулы при первом рендере
-	// ИСПРАВЛЕНИЕ: Добавили dispatch в зависимости
+	// ИСПРАВЛЕНИЕ: Загружаем корзину для ВСЕХ пользователей (авторизованных и нет)
 	useEffect(() => {
 		loadFormulas()
-		if (isAuthenticated) {
-			dispatch(getCartIcon())
-		}
-	}, [isAuthenticated, dispatch]) // ИСПРАВЛЕНИЕ: Добавлен dispatch в зависимости
+		// ИСПРАВЛЕНИЕ: Всегда загружаем иконку корзины, независимо от авторизации
+		dispatch(getCartIcon())
+	}, [dispatch]) // ИСПРАВЛЕНИЕ: Убрали isAuthenticated из зависимостей
 
 	// ИНИЦИАЛИЗАЦИЯ: Восстанавливаем поиск ТОЛЬКО из URL параметров при первом рендере
 	// ИСПРАВЛЕНИЕ: Добавили зависимости
@@ -62,7 +61,7 @@ const PvlcPatientsPage: React.FC = () => {
 			dispatch(setSearchTerm(urlSearchTerm))
 			setInputValue(urlSearchTerm)
 		}
-	}, [searchParams, searchTerm, dispatch]) // ИСПРАВЛЕНИЕ: Добавлены зависимости
+	}, [searchParams, searchTerm, dispatch])
 
 	// Синхронизация inputValue с searchTerm из Redux
 	useEffect(() => {
@@ -181,18 +180,29 @@ const PvlcPatientsPage: React.FC = () => {
 					</section>
 				)}
 
-				{/* Иконка корзины */}
-				{isAuthenticated &&
-					(itemCount > 0 ? (
-						<a href={`/pvlc_med_card/${cartId}`} className='folder-icon'>
-							<img src='./folder.png' alt='Корзина' width='100' height='70' />
+				{/* ИСПРАВЛЕНИЕ: Иконка корзины отображается ВСЕГДА, но активна только для авторизованных */}
+				{/* Если пользователь не авторизован - корзина неактивна */}
+				{!isAuthenticated ? (
+					<div
+						className='folder-icon inactive'
+						title='Войдите для доступа к корзине'
+					>
+						<img src='./folder.png' alt='Корзина' width='100' height='70' />
+						{itemCount > 0 && (
 							<span className='notification-badge'>{itemCount}</span>
-						</a>
-					) : (
-						<div className='folder-icon inactive'>
-							<img src='./folder.png' alt='Корзина' width='100' height='70' />
-						</div>
-					))}
+						)}
+					</div>
+				) : // Если пользователь авторизован - корзина активна
+				itemCount > 0 ? (
+					<a href={`/pvlc_med_card/${cartId}`} className='folder-icon'>
+						<img src='./folder.png' alt='Корзина' width='100' height='70' />
+						<span className='notification-badge'>{itemCount}</span>
+					</a>
+				) : (
+					<div className='folder-icon inactive'>
+						<img src='./folder.png' alt='Корзина' width='100' height='70' />
+					</div>
+				)}
 			</Container>
 		</Container>
 	)

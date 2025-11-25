@@ -28,22 +28,22 @@ const initialState: MedCartState = {
 	error: null,
 }
 
-// Асинхронное действие для получения иконки корзины
-export const getCartIcon = createAsyncThunk(
-	'medCart/getCartIcon',
-	async (_, { rejectWithValue }) => {
-		try {
-			// ИСПРАВЛЕНИЕ: Правильный вызов API метода
-			const response = await api.api.medCardIconList()
-			return response.data
-		} catch (error: unknown) {
-			// ИСПРАВЛЕНИЕ: Убрали any и добавили правильную обработку ошибок
-			const errorMessage =
-				error instanceof Error ? error.message : 'Ошибка загрузки корзины'
-			return rejectWithValue(errorMessage)
+// ИСПРАВЛЕНИЕ: Асинхронное действие для получения иконки корзины (работает для всех пользователей)
+export const getCartIcon = createAsyncThunk('medCart/getCartIcon', async () => {
+	// ИСПРАВЛЕНИЕ: Убрали неиспользуемые параметры
+	try {
+		// ИСПРАВЛЕНИЕ: Правильный вызов API метода без авторизации
+		const response = await api.api.medCardIconList()
+		return response.data
+	} catch {
+		// ИСПРАВЛЕНИЕ: Возвращаем данные по умолчанию вместо ошибки
+		console.warn('Cart icon request failed, using default values')
+		return {
+			med_card_id: 0,
+			med_item_count: 0,
 		}
 	}
-)
+})
 
 // Асинхронное действие для добавления формулы в корзину
 export const addToCart = createAsyncThunk(
@@ -54,7 +54,7 @@ export const addToCart = createAsyncThunk(
 			const response = await api.api.pvlcMedFormulasAddToCartCreate(formulaId)
 			return response.data
 		} catch (error: unknown) {
-			// ИСПРАВЛЕНИЕ: Убрали any и добавили правильную обработку ошибок
+			// ИСПРАВЛЕНИЕ: Правильная обработка ошибок
 			const errorMessage =
 				error instanceof Error ? error.message : 'Ошибка добавления в корзину'
 			return rejectWithValue(errorMessage)
@@ -87,9 +87,13 @@ const medCartSlice = createSlice({
 				state.itemCount = action.payload.med_item_count || 0
 				state.error = null
 			})
-			.addCase(getCartIcon.rejected, (state, action) => {
+			.addCase(getCartIcon.rejected, state => {
+				// ИСПРАВЛЕНИЕ: Убрали неиспользуемый action
 				state.loading = false
-				state.error = action.payload as string
+				// ИСПРАВЛЕНИЕ: Устанавливаем значения по умолчанию вместо ошибки
+				state.cartId = 0
+				state.itemCount = 0
+				state.error = null
 			})
 			// Добавление в корзину
 			.addCase(addToCart.fulfilled, state => {

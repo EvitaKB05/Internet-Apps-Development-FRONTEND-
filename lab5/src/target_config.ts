@@ -4,12 +4,9 @@
 const isTauri = false
 
 // Базовые URL для API и изображений
-// ДЛЯ TAURI: используем прямой IP адрес бэкенда
-// ДЛЯ WEB: используем прокси или относительные пути
-
-// ВАШ IP: 192.168.1.14
+// ИСПРАВЛЕНИЕ: Правильные URL для разработки
 export const API_BASE_TAURI = 'http://localhost:8080'
-export const API_BASE_WEB = '/api'
+export const API_BASE_WEB = 'http://localhost:8080' // Прямое подключение к бэкенду
 export const MINIO_BASE_TAURI = 'http://localhost:9000/pics'
 export const MINIO_BASE_WEB = 'http://localhost:9000/pics'
 

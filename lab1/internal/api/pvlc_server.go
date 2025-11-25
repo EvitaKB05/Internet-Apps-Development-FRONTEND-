@@ -32,8 +32,31 @@ func debugHeadersMiddleware() gin.HandlerFunc {
 	}
 }
 
+// corsMiddleware добавляет CORS заголовки
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		origin := c.Request.Header.Get("Origin")
+		if origin == "" {
+			origin = "*"
+		}
+
+		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Accept, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 // StartServer запускает HTTP сервер
-// ПОЛНОСТЬЮ ПЕРЕПИСАН ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4
+// ДОБАВЛЕНО CORS middleware
 func StartServer() {
 	log.Println("Starting server")
 
@@ -67,6 +90,9 @@ func StartServer() {
 
 	r := gin.Default()
 
+	// ДОБАВЛЕНО: CORS middleware ДО всех других middleware
+	r.Use(corsMiddleware())
+
 	// ДОБАВЛЕНО: middleware для отладки заголовков
 	r.Use(debugHeadersMiddleware())
 
@@ -98,6 +124,8 @@ func StartServer() {
 			public.POST("/auth/login", api.Login)                       // Аутентификация
 			public.GET("/pvlc-med-formulas", api.GetPvlcMedFormulas)    // Список формул
 			public.GET("/pvlc-med-formulas/:id", api.GetPvlcMedFormula) // Конкретная формула
+			// ИСПРАВЛЕНИЕ: Корзина доступна без авторизации
+			public.GET("/med_card/icon", api.GetCartIcon) // Иконка корзины
 		}
 
 		// Auth required routes (требуют аутентификации)
@@ -107,9 +135,6 @@ func StartServer() {
 			// Auth routes
 			authRequired.POST("/auth/logout", api.Logout)     // Выход
 			authRequired.GET("/auth/profile", api.GetProfile) // Профиль
-
-			// Cart routes
-			authRequired.GET("/med_card/icon", api.GetCartIcon) // Иконка корзины
 
 			// Pvlc Med Formulas routes
 			authRequired.POST("/pvlc-med-formulas/:id/add-to-cart", api.AddPvlcMedFormulaToCart) // Добавление в корзину

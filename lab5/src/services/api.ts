@@ -78,18 +78,24 @@ class ApiService {
 		}
 
 		try {
-			const authorizedApi = this.getAuthorizedApi()
-			const response = await authorizedApi.api.pvlcMedFormulasList()
+			// ИСПРАВЛЕНИЕ: Проверяем доступность бэкенда через публичный эндпоинт
+			const testApi = new (api.constructor as new (
+				config: ApiConfig
+			) => typeof api)({
+				baseURL: this.getApiBase(),
+			})
 
-			if (!response.status) {
+			const response = await testApi.api.pvlcMedFormulasList()
+
+			if (response.status !== 200) {
 				throw new Error('Backend not available')
 			}
 
 			this.useMock = false
 			console.log('Backend connected successfully')
-		} catch {
+		} catch (error) {
 			this.useMock = true
-			console.warn('Backend not available, using mock data')
+			console.warn('Backend not available, using mock data:', error)
 		} finally {
 			this.backendChecked = true
 		}
@@ -106,6 +112,7 @@ class ApiService {
 		return this.useMock
 	}
 
+	// ИСПРАВЛЕНИЕ: Корзина должна возвращать 200 даже для неавторизованных
 	async getCartIcon(): Promise<CartIconResponse> {
 		await this.ensureBackendChecked()
 
@@ -117,18 +124,32 @@ class ApiService {
 		}
 
 		try {
-			const authorizedApi = this.getAuthorizedApi()
-			const response = await authorizedApi.api.medCardIconList()
+			const token = this.getAuthToken()
+
+			// ИСПРАВЛЕНИЕ: Создаем API инстанс в зависимости от авторизации
+			let apiInstance
+			if (token) {
+				apiInstance = this.getAuthorizedApi()
+			} else {
+				apiInstance = new (api.constructor as new (
+					config: ApiConfig
+				) => typeof api)({
+					baseURL: this.getApiBase(),
+				})
+			}
+
+			const response = await apiInstance.api.medCardIconList()
 
 			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
 			const apiData = response.data
 			const cartData: CartIconResponse = {
-				med_card_id: apiData.med_card_id || 0, // Задаем значение по умолчанию
-				med_item_count: apiData.med_item_count || 0, // Задаем значение по умолчанию
+				med_card_id: apiData.med_card_id || 0,
+				med_item_count: apiData.med_item_count || 0,
 			}
 			return cartData
 		} catch (error) {
 			console.error('Error fetching cart icon:', error)
+			// ИСПРАВЛЕНИЕ: Возвращаем данные по умолчанию вместо ошибки
 			return {
 				med_card_id: 0,
 				med_item_count: 0,
@@ -176,7 +197,12 @@ class ApiService {
 		}
 
 		try {
-			const authorizedApi = this.getAuthorizedApi()
+			const apiInstance = new (api.constructor as new (
+				config: ApiConfig
+			) => typeof api)({
+				baseURL: this.getApiBase(),
+			})
+
 			const params: {
 				category?: string
 				gender?: string
@@ -191,12 +217,12 @@ class ApiService {
 			if (filter?.max_age) params.max_age = filter.max_age
 			if (filter?.active !== undefined) params.active = filter.active
 
-			const response = await authorizedApi.api.pvlcMedFormulasList(params)
+			const response = await apiInstance.api.pvlcMedFormulasList(params)
 
 			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
 			const apiFormulas = response.data
 			const formulas: PvlcMedFormula[] = apiFormulas.map(apiFormula => ({
-				id: apiFormula.id || 0, // Задаем значение по умолчанию
+				id: apiFormula.id || 0,
 				title: apiFormula.title || '',
 				description: apiFormula.description || '',
 				formula: apiFormula.formula || '',
@@ -224,15 +250,20 @@ class ApiService {
 		}
 
 		try {
-			const authorizedApi = this.getAuthorizedApi()
-			const response = await authorizedApi.api.pvlcMedFormulasDetail(id)
+			const apiInstance = new (api.constructor as new (
+				config: ApiConfig
+			) => typeof api)({
+				baseURL: this.getApiBase(),
+			})
+
+			const response = await apiInstance.api.pvlcMedFormulasDetail(id)
 
 			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
 			const apiFormula = response.data
 			if (!apiFormula) return null
 
 			const formula: PvlcMedFormula = {
-				id: apiFormula.id || 0, // Задаем значение по умолчанию
+				id: apiFormula.id || 0,
 				title: apiFormula.title || '',
 				description: apiFormula.description || '',
 				formula: apiFormula.formula || '',
