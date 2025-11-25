@@ -1,7 +1,7 @@
 // src/pages/PvlcPatientsPage.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Container, Alert, Spinner, Form } from 'react-bootstrap'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import type { PvlcMedFormula } from '../types'
 import { apiService } from '../services/api'
 import { useAppDispatch, useAppSelector } from '../hooks/redux'
@@ -12,6 +12,7 @@ import FormulaCard from '../components/FormulaCard'
 
 const PvlcPatientsPage: React.FC = () => {
 	const dispatch = useAppDispatch()
+	const navigate = useNavigate()
 
 	// Получаем состояние фильтров из Redux
 	const searchTerm = useAppSelector(state => state.filters.searchTerm)
@@ -49,10 +50,9 @@ const PvlcPatientsPage: React.FC = () => {
 		loadFormulas()
 		// ИСПРАВЛЕНИЕ: Всегда загружаем иконку корзины, независимо от авторизации
 		dispatch(getCartIcon())
-	}, [dispatch]) // ИСПРАВЛЕНИЕ: Убрали isAuthenticated из зависимостей
+	}, [dispatch])
 
 	// ИНИЦИАЛИЗАЦИЯ: Восстанавливаем поиск ТОЛЬКО из URL параметров при первом рендере
-	// ИСПРАВЛЕНИЕ: Добавили зависимости
 	useEffect(() => {
 		const urlSearchTerm = searchParams.get('search') || ''
 
@@ -111,6 +111,19 @@ const PvlcPatientsPage: React.FC = () => {
 		if (searchInputRef.current) {
 			searchInputRef.current.focus()
 		}
+	}
+
+	const handleCartClick = () => {
+		if (isAuthenticated && cartId) {
+			navigate(`/pvlc_med_card/${cartId}`)
+		} else if (!isAuthenticated) {
+			navigate('/pvlc_login')
+		}
+	}
+
+	// ИСПРАВЛЕНИЕ: Функция для обновления корзины после добавления
+	const refreshCart = async () => {
+		await dispatch(getCartIcon())
 	}
 
 	if (loading) {
@@ -174,35 +187,33 @@ const PvlcPatientsPage: React.FC = () => {
 					<section className='services-section'>
 						<div className='services-grid'>
 							{filteredFormulas.map(formula => (
-								<FormulaCard key={formula.id} formula={formula} />
+								<FormulaCard
+									key={formula.id}
+									formula={formula}
+									onAddToCart={refreshCart}
+								/>
 							))}
 						</div>
 					</section>
 				)}
 
 				{/* ИСПРАВЛЕНИЕ: Иконка корзины отображается ВСЕГДА, но активна только для авторизованных */}
-				{/* Если пользователь не авторизован - корзина неактивна */}
-				{!isAuthenticated ? (
-					<div
-						className='folder-icon inactive'
-						title='Войдите для доступа к корзине'
-					>
-						<img src='./folder.png' alt='Корзина' width='100' height='70' />
-						{itemCount > 0 && (
-							<span className='notification-badge'>{itemCount}</span>
-						)}
-					</div>
-				) : // Если пользователь авторизован - корзина активна
-				itemCount > 0 ? (
-					<a href={`/pvlc_med_card/${cartId}`} className='folder-icon'>
-						<img src='./folder.png' alt='Корзина' width='100' height='70' />
+				<div
+					className={`folder-icon ${
+						isAuthenticated && cartId ? 'active' : 'inactive'
+					}`}
+					onClick={handleCartClick}
+					title={
+						isAuthenticated
+							? 'Перейти к заявке'
+							: 'Войдите для доступа к корзине'
+					}
+				>
+					<img src='./folder.png' alt='Корзина' width='100' height='70' />
+					{isAuthenticated && itemCount > 0 && (
 						<span className='notification-badge'>{itemCount}</span>
-					</a>
-				) : (
-					<div className='folder-icon inactive'>
-						<img src='./folder.png' alt='Корзина' width='100' height='70' />
-					</div>
-				)}
+					)}
+				</div>
 			</Container>
 		</Container>
 	)

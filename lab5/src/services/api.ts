@@ -8,12 +8,6 @@ import { FORMULAS_MOCK } from '../mock/data'
 import { getApiBase, getMinioBase, getIsTauri } from '../target_config'
 import { api } from '../api'
 
-// ИСПРАВЛЕНИЕ: Создаем интерфейс для конфигурации API
-interface ApiConfig {
-	baseURL: string
-	securityWorker?: () => { headers: { Authorization: string } }
-}
-
 // Интерфейсы для ответов API
 interface ApiResponse<T> {
 	data?: T
@@ -30,6 +24,40 @@ interface ApiFormulaResponse {
 	min_age?: number
 	max_age?: number
 	is_active?: boolean
+}
+
+// Интерфейс для деталей заявки
+interface MedCardDetail {
+	id: number
+	status: string
+	patient_name: string
+	doctor_name: string
+	total_result: number
+	created_at: string
+	finalized_at?: string
+	completed_at?: string
+	med_calculations: Array<{
+		pvlc_med_formula_id: number
+		title: string
+		description: string
+		formula: string
+		image_url: string
+		input_height: number
+		final_result: number
+	}>
+}
+
+// Интерфейс для ответа регистрации
+interface RegisterResponse {
+	message: string
+	user_id: number
+}
+
+// Интерфейс для security worker
+interface SecurityHeaders {
+	headers: {
+		Authorization: string
+	}
 }
 
 class ApiService {
@@ -52,28 +80,33 @@ class ApiService {
 	// ИСПРАВЛЕНИЕ: Правильное создание авторизованного API инстанса
 	private getAuthorizedApi() {
 		const token = this.getAuthToken()
-		const config: ApiConfig = {
-			baseURL: this.getApiBase(),
-		}
 
-		// Добавляем заголовок авторизации если токен есть
-		if (token) {
-			// Создаем новый инстанс API с заголовками
-			return new (api.constructor as new (config: ApiConfig) => typeof api)({
-				...config,
-				securityWorker: () => {
+		// Создаем новый инстанс API с заголовками авторизации
+		const ApiClass = api.constructor as new (config: {
+			baseURL: string
+			securityWorker?: (
+				securityData: unknown | null
+			) => Promise<SecurityHeaders> | SecurityHeaders
+		}) => typeof api
+
+		return new ApiClass({
+			baseURL: this.getApiBase(),
+			securityWorker: (): SecurityHeaders => {
+				if (token) {
 					return {
 						headers: {
 							Authorization: `Bearer ${token}`,
 						},
 					}
-				},
-			})
-		}
-
-		return new (api.constructor as new (config: ApiConfig) => typeof api)(
-			config
-		)
+				}
+				// Возвращаем пустые заголовки если токена нет
+				return {
+					headers: {
+						Authorization: '',
+					},
+				}
+			},
+		})
 	}
 
 	private async ensureBackendChecked(): Promise<void> {
@@ -96,13 +129,8 @@ class ApiService {
 		}
 
 		try {
-			// ИСПРАВЛЕНИЕ: Проверяем доступность бэкенда через публичный эндпоинт
-			const testApi = new (api.constructor as new (
-				config: ApiConfig
-			) => typeof api)({
-				baseURL: this.getApiBase(),
-			})
-
+			// Проверяем доступность бэкенда через публичный эндпоинт
+			const testApi = this.getAuthorizedApi()
 			const response = await testApi.api.pvlcMedFormulasList()
 
 			if (response.status !== 200) {
@@ -142,23 +170,10 @@ class ApiService {
 		}
 
 		try {
-			const token = this.getAuthToken()
-
-			// ИСПРАВЛЕНИЕ: Создаем API инстанс в зависимости от авторизации
-			let apiInstance
-			if (token) {
-				apiInstance = this.getAuthorizedApi()
-			} else {
-				apiInstance = new (api.constructor as new (
-					config: ApiConfig
-				) => typeof api)({
-					baseURL: this.getApiBase(),
-				})
-			}
-
+			const apiInstance = this.getAuthorizedApi()
 			const response = await apiInstance.api.medCardIconList()
 
-			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
+			// Преобразуем данные API в наш тип
 			const apiData = response.data
 			const cartData: CartIconResponse = {
 				med_card_id: apiData.med_card_id || 0,
@@ -167,7 +182,7 @@ class ApiService {
 			return cartData
 		} catch (error) {
 			console.error('Error fetching cart icon:', error)
-			// ИСПРАВЛЕНИЕ: Возвращаем данные по умолчанию вместо ошибки
+			// Возвращаем данные по умолчанию вместо ошибки
 			return {
 				med_card_id: 0,
 				med_item_count: 0,
@@ -215,11 +230,7 @@ class ApiService {
 		}
 
 		try {
-			const apiInstance = new (api.constructor as new (
-				config: ApiConfig
-			) => typeof api)({
-				baseURL: this.getApiBase(),
-			})
+			const apiInstance = this.getAuthorizedApi()
 
 			const params: {
 				category?: string
@@ -237,7 +248,7 @@ class ApiService {
 
 			const response = await apiInstance.api.pvlcMedFormulasList(params)
 
-			// ИСПРАВЛЕНИЕ: Правильная обработка ответа API с типизацией
+			// Правильная обработка ответа API с типизацией
 			const apiData = response.data as unknown as
 				| ApiResponse<ApiFormulaResponse[]>
 				| ApiFormulaResponse[]
@@ -287,15 +298,10 @@ class ApiService {
 		}
 
 		try {
-			const apiInstance = new (api.constructor as new (
-				config: ApiConfig
-			) => typeof api)({
-				baseURL: this.getApiBase(),
-			})
-
+			const apiInstance = this.getAuthorizedApi()
 			const response = await apiInstance.api.pvlcMedFormulasDetail(id)
 
-			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип с правильной типизацией
+			// Преобразуем данные API в наш тип с правильной типизацией
 			const apiData = response.data as unknown as
 				| ApiResponse<ApiFormulaResponse>
 				| ApiFormulaResponse
@@ -333,6 +339,170 @@ class ApiService {
 			console.error('Error fetching formula:', error)
 			this.useMock = true
 			return this.getFormulaById(id)
+		}
+	}
+
+	// ИСПРАВЛЕНИЕ: Добавляем метод для добавления в корзину
+	async addToCart(
+		formulaId: number
+	): Promise<{ message: string; med_card_id: number }> {
+		await this.ensureBackendChecked()
+
+		if (this.useMock) {
+			return {
+				message: 'пациент добавлен в мед-карту',
+				med_card_id: 1,
+			}
+		}
+
+		try {
+			const apiInstance = this.getAuthorizedApi()
+			const response = await apiInstance.api.pvlcMedFormulasAddToCartCreate(
+				formulaId
+			)
+
+			return response.data as { message: string; med_card_id: number }
+		} catch (error) {
+			console.error('Error adding to cart:', error)
+			throw error
+		}
+	}
+
+	// ИСПРАВЛЕНИЕ: Добавляем метод для получения деталей заявки
+	async getMedCard(id: number): Promise<MedCardDetail> {
+		await this.ensureBackendChecked()
+
+		if (this.useMock) {
+			// Мок данные для заявки
+			return {
+				id: id,
+				status: 'черновик',
+				patient_name: 'Иванов Иван',
+				doctor_name: 'Петрова А.С.',
+				total_result: 0,
+				created_at: new Date().toISOString(),
+				med_calculations: [],
+			}
+		}
+
+		try {
+			const apiInstance = this.getAuthorizedApi()
+			const response = await apiInstance.api.pvlcMedCardsDetail(id)
+			return response.data as MedCardDetail
+		} catch (error) {
+			console.error('Error fetching med card:', error)
+			throw error
+		}
+	}
+
+	// ИСПРАВЛЕНИЕ: Добавляем метод для удаления формулы из заявки
+	// ИСПРАВЛЕНИЕ: Используем правильный метод API - медикаменты удаляются через DELETE /med-mm-pvlc-calculations
+	async deleteCalculation(cardId: number, formulaId: number): Promise<void> {
+		await this.ensureBackendChecked()
+
+		if (this.useMock) {
+			return
+		}
+
+		try {
+			const apiInstance = this.getAuthorizedApi()
+			// ИСПРАВЛЕНИЕ: Используем правильный метод API для удаления расчета
+			// В сгенерированном API нет отдельного метода, используем общий подход
+			// Создаем запрос вручную через instance
+			await apiInstance.instance.delete('/api/med-mm-pvlc-calculations', {
+				data: {
+					card_id: cardId,
+					pvlc_med_formula_id: formulaId,
+				},
+			})
+		} catch (error) {
+			console.error('Error deleting calculation:', error)
+			throw error
+		}
+	}
+
+	// ИСПРАВЛЕНИЕ: Добавляем метод для обновления заявки
+	async updateMedCard(
+		id: number,
+		data: { patient_name?: string; doctor_name?: string }
+	): Promise<void> {
+		await this.ensureBackendChecked()
+
+		if (this.useMock) {
+			return
+		}
+
+		try {
+			const apiInstance = this.getAuthorizedApi()
+			await apiInstance.api.pvlcMedCardsUpdate(id, data)
+		} catch (error) {
+			console.error('Error updating med card:', error)
+			throw error
+		}
+	}
+
+	// ИСПРАВЛЕНИЕ: Добавляем метод для формирования заявки
+	async finalizeMedCard(id: number): Promise<void> {
+		await this.ensureBackendChecked()
+
+		if (this.useMock) {
+			return
+		}
+
+		try {
+			const apiInstance = this.getAuthorizedApi()
+			await apiInstance.api.pvlcMedCardsFormUpdate(id)
+		} catch (error) {
+			console.error('Error finalizing med card:', error)
+			throw error
+		}
+	}
+
+	// ИСПРАВЛЕНИЕ: Добавляем метод для удаления заявки
+	async deleteMedCard(id: number): Promise<void> {
+		await this.ensureBackendChecked()
+
+		if (this.useMock) {
+			return
+		}
+
+		try {
+			const apiInstance = this.getAuthorizedApi()
+			await apiInstance.api.pvlcMedCardsDelete(id)
+		} catch (error) {
+			console.error('Error deleting med card:', error)
+			throw error
+		}
+	}
+
+	// ИСПРАВЛЕНИЕ: Добавляем метод для регистрации пользователя
+	async registerUser(userData: {
+		login: string
+		password: string
+		is_moderator: boolean
+	}): Promise<RegisterResponse> {
+		await this.ensureBackendChecked()
+
+		if (this.useMock) {
+			return {
+				message: 'Пользователь успешно зарегистрирован',
+				user_id: Date.now(),
+			}
+		}
+
+		try {
+			const apiInstance = this.getAuthorizedApi()
+			// ИСПРАВЛЕНИЕ: Используем правильный метод API для регистрации
+			// В сгенерированном API нет метода register, используем общий подход
+			// Создаем запрос вручную через instance
+			const response = await apiInstance.instance.post(
+				'/api/med-users/register',
+				userData
+			)
+			return response.data as RegisterResponse
+		} catch (error) {
+			console.error('Error registering user:', error)
+			throw error
 		}
 	}
 

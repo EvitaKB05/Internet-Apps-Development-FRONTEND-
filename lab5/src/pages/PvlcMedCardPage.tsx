@@ -1,5 +1,5 @@
 // src/pages/PvlcMedCardPage.tsx
-import React, { useEffect, useState, useCallback } from 'react' // ИСПРАВЛЕНИЕ: Добавлен useCallback
+import React, { useEffect, useState } from 'react'
 import {
 	Container,
 	Alert,
@@ -9,10 +9,19 @@ import {
 	Col,
 	Badge,
 	Button,
+	Form,
 } from 'react-bootstrap'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import type { RootState } from '../store'
+import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch, RootState } from '../store'
+import {
+	getMedCardDetails,
+	deleteCalculation,
+	updateMedCard,
+	finalizeMedCard,
+	deleteMedCard,
+	clearError,
+} from '../store/slices/medCartSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { apiService } from '../services/api'
 
@@ -41,64 +50,50 @@ interface MedCardDetail {
 const PvlcMedCardPage: React.FC = () => {
 	const { id } = useParams<{ id: string }>()
 	const navigate = useNavigate()
+	const dispatch = useDispatch<AppDispatch>()
 
 	const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+	const { calculations, loading, error } = useSelector(
+		(state: RootState) => state.medCart
+	)
 
 	const [medCard, setMedCard] = useState<MedCardDetail | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
+	const [doctorName, setDoctorName] = useState('')
+	const [isEditing, setIsEditing] = useState(false)
 
-	// ИСПРАВЛЕНИЕ: Выносим loadMedCard в useCallback
-	const loadMedCard = useCallback(async () => {
-		if (!id || !isAuthenticated) return
-
-		try {
-			setLoading(true)
-			setError(null)
-
-			// Здесь будет вызов API для получения детальной информации о заявке
-			// const response = await api.pvlcMedCards.pvlcMedCardsRead(id!)
-			// setMedCard(response.data)
-
-			// Временные мок-данные
-			const mockMedCard: MedCardDetail = {
-				id: parseInt(id!),
-				status: 'черновик',
-				patient_name: 'Иванов Иван',
-				doctor_name: 'Петрова А.С.',
-				total_result: 4.2,
-				created_at: new Date().toISOString(),
-				med_calculations: [
-					{
-						pvlc_med_formula_id: 1,
-						title: 'Мужчины 18-60 лет',
-						description: 'Расчет ДЖЕЛ для взрослых мужчин',
-						formula: 'ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 3.60',
-						image_url: 'men_18_60.png',
-						input_height: 180,
-						final_result: 4.2,
-					},
-				],
-			}
-
-			setMedCard(mockMedCard)
-		} catch (err) {
-			setError('Ошибка загрузки заявки')
-			console.error('Error loading med card:', err)
-		} finally {
-			setLoading(false)
-		}
-	}, [id, isAuthenticated]) // ИСПРАВЛЕНИЕ: Добавлены зависимости
-
-	// ИСПРАВЛЕНИЕ: Теперь используем loadMedCard в useCallback
+	// Загрузка данных заявки
 	useEffect(() => {
-		if (!isAuthenticated) {
+		if (!id || !isAuthenticated) {
 			navigate('/pvlc_login')
 			return
 		}
 
-		loadMedCard()
-	}, [loadMedCard, isAuthenticated, navigate]) // ИСПРАВЛЕНИЕ: Добавлены правильные зависимости
+		const cardId = parseInt(id)
+		dispatch(getMedCardDetails(cardId))
+	}, [id, isAuthenticated, navigate, dispatch])
+
+	// Обновление локального состояния при изменении данных из Redux
+	useEffect(() => {
+		if (calculations.length > 0 && id) {
+			const cardId = parseInt(id)
+			setMedCard({
+				id: cardId,
+				status: 'черновик', // По умолчанию, пока не загрузим реальный статус
+				patient_name: 'Не указано',
+				doctor_name: doctorName || 'Не указано',
+				total_result: 0,
+				created_at: new Date().toISOString(),
+				med_calculations: calculations,
+			})
+		}
+	}, [calculations, id, doctorName])
+
+	// Очистка ошибок при размонтировании
+	useEffect(() => {
+		return () => {
+			dispatch(clearError())
+		}
+	}, [dispatch])
 
 	const getStatusVariant = (status: string) => {
 		switch (status) {
@@ -123,13 +118,67 @@ const PvlcMedCardPage: React.FC = () => {
 		})
 	}
 
+	const handleDeleteCalculation = async (formulaId: number) => {
+		if (!id) return
+
+		try {
+			await dispatch(
+				deleteCalculation({
+					cardId: parseInt(id),
+					formulaId,
+				})
+			).unwrap()
+		} catch (err) {
+			console.error('Error deleting calculation:', err)
+		}
+	}
+
+	const handleSaveDoctor = async () => {
+		if (!id || !doctorName.trim()) return
+
+		try {
+			await dispatch(
+				updateMedCard({
+					cardId: parseInt(id),
+					data: { doctor_name: doctorName },
+				})
+			).unwrap()
+			setIsEditing(false)
+		} catch (err) {
+			console.error('Error updating doctor name:', err)
+		}
+	}
+
+	const handleFinalize = async () => {
+		if (!id) return
+
+		try {
+			await dispatch(finalizeMedCard(parseInt(id))).unwrap()
+			// Обновляем данные заявки после формирования
+			dispatch(getMedCardDetails(parseInt(id)))
+		} catch (err) {
+			console.error('Error finalizing med card:', err)
+		}
+	}
+
+	const handleDelete = async () => {
+		if (!id) return
+
+		try {
+			await dispatch(deleteMedCard(parseInt(id))).unwrap()
+			navigate('/pvlc_patients')
+		} catch (err) {
+			console.error('Error deleting med card:', err)
+		}
+	}
+
 	const isDraft = medCard?.status === 'черновик'
 
 	if (!isAuthenticated) {
 		return null
 	}
 
-	if (loading) {
+	if (loading && !medCard) {
 		return (
 			<Container className='text-center py-5'>
 				<Spinner animation='border' role='status'>
@@ -140,7 +189,7 @@ const PvlcMedCardPage: React.FC = () => {
 		)
 	}
 
-	if (error || !medCard) {
+	if (error && !medCard) {
 		return (
 			<Container>
 				<Breadcrumbs
@@ -149,7 +198,24 @@ const PvlcMedCardPage: React.FC = () => {
 						{ label: 'Не найдено' },
 					]}
 				/>
-				<Alert variant='danger'>{error || 'Заявка не найдена'}</Alert>
+				<Alert variant='danger'>{error}</Alert>
+				<Button variant='primary' onClick={() => navigate('/pvlc_med_cards')}>
+					Вернуться к списку
+				</Button>
+			</Container>
+		)
+	}
+
+	if (!medCard) {
+		return (
+			<Container>
+				<Breadcrumbs
+					items={[
+						{ label: 'Мои заявки', path: '/pvlc_med_cards' },
+						{ label: 'Не найдено' },
+					]}
+				/>
+				<Alert variant='warning'>Заявка не найдена</Alert>
 				<Button variant='primary' onClick={() => navigate('/pvlc_med_cards')}>
 					Вернуться к списку
 				</Button>
@@ -174,6 +240,12 @@ const PvlcMedCardPage: React.FC = () => {
 			</div>
 
 			<Container>
+				{error && (
+					<Alert variant='danger' className='mb-4'>
+						{error}
+					</Alert>
+				)}
+
 				<Card className='mb-4'>
 					<Card.Header>
 						<Row className='align-items-center'>
@@ -217,23 +289,71 @@ const PvlcMedCardPage: React.FC = () => {
 							</Col>
 						</Row>
 
+						{/* Поле для ввода врача */}
+						<Card className='mt-3'>
+							<Card.Body>
+								<h5>Укажите врача</h5>
+								<Row className='align-items-center'>
+									<Col md={8}>
+										<Form.Group>
+											<Form.Control
+												type='text'
+												placeholder='Введите ФИО врача'
+												value={doctorName}
+												onChange={e => setDoctorName(e.target.value)}
+												disabled={!isDraft || !isEditing}
+											/>
+										</Form.Group>
+									</Col>
+									<Col md={4}>
+										{isEditing ? (
+											<Button
+												variant='success'
+												onClick={handleSaveDoctor}
+												className='w-100'
+											>
+												Сохранить
+											</Button>
+										) : (
+											<Button
+												variant='outline-primary'
+												onClick={() => setIsEditing(true)}
+												className='w-100'
+												disabled={!isDraft}
+											>
+												Изменить
+											</Button>
+										)}
+									</Col>
+								</Row>
+							</Card.Body>
+						</Card>
+
+						{/* Кнопки управления заявкой */}
 						{isDraft && (
-							<div className='mt-3'>
-								<Button variant='primary' className='me-2'>
-									Редактировать
+							<div className='mt-3 d-flex gap-2'>
+								<Button
+									variant='primary'
+									onClick={handleFinalize}
+									disabled={!doctorName.trim() || calculations.length === 0}
+								>
+									Сформировать заявку
 								</Button>
-								<Button variant='outline-danger'>Удалить заявку</Button>
+								<Button variant='outline-danger' onClick={handleDelete}>
+									Удалить заявку
+								</Button>
 							</div>
 						)}
 					</Card.Body>
 				</Card>
 
+				{/* Расчеты ДЖЕЛ в заявке */}
 				<Card>
 					<Card.Header>
 						<h4 className='mb-0'>Расчеты ДЖЕЛ в заявке</h4>
 					</Card.Header>
 					<Card.Body>
-						{medCard.med_calculations.length === 0 ? (
+						{calculations.length === 0 ? (
 							<Alert variant='info'>
 								В заявке пока нет расчетов.{' '}
 								<Button
@@ -245,24 +365,24 @@ const PvlcMedCardPage: React.FC = () => {
 							</Alert>
 						) : (
 							<Row>
-								{medCard.med_calculations.map(calc => (
+								{calculations.map(calc => (
 									<Col key={calc.pvlc_med_formula_id} md={6} className='mb-3'>
 										<Card>
 											<Card.Body>
 												<Row>
-													<Col xs={4}>
+													<Col xs={3}>
 														<img
 															src={apiService.getImageUrl(calc.image_url)}
 															alt={calc.title}
 															className='img-fluid rounded'
-															style={{ maxHeight: '100px' }}
+															style={{ maxHeight: '80px' }}
 															onError={e => {
 																;(e.target as HTMLImageElement).src =
 																	'/DefaultImage.jpg'
 															}}
 														/>
 													</Col>
-													<Col xs={8}>
+													<Col xs={7}>
 														<h6>{calc.title}</h6>
 														<p className='text-muted small mb-1'>
 															{calc.description}
@@ -277,6 +397,25 @@ const PvlcMedCardPage: React.FC = () => {
 															<strong>Результат:</strong>{' '}
 															{calc.final_result.toFixed(2)} л
 														</p>
+													</Col>
+													<Col
+														xs={2}
+														className='d-flex align-items-start justify-content-end'
+													>
+														{isDraft && (
+															<Button
+																variant='outline-danger'
+																size='sm'
+																onClick={() =>
+																	handleDeleteCalculation(
+																		calc.pvlc_med_formula_id
+																	)
+																}
+																title='Удалить расчет'
+															>
+																🗑️
+															</Button>
+														)}
 													</Col>
 												</Row>
 											</Card.Body>

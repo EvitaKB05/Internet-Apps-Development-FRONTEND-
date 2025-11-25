@@ -454,4 +454,27 @@ body {
 		bottom: 0.5rem;
 	}
 }
+/* Добавляем в конец файла App.css */
+
+/* Стили для активной/неактивной корзины */
+.folder-icon.active {
+	cursor: pointer;
+	opacity: 0.8;
+	transition: opacity 0.3s ease;
+}
+
+.folder-icon.active:hover {
+	opacity: 1;
+	transform: scale(1.05);
+}
+
+.folder-icon.inactive {
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+
+.folder-icon.inactive:hover {
+	opacity: 0.5;
+	transform: none;
+}
 /* КОНЕЦ ИЗМЕНЕНИЙ */

@@ -1,10 +1,17 @@
 // src/pages/PvlcRegisterPage.tsx
-import React, { useState } from 'react'
-import { Container, Form, Button, Alert, Card } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Container, Form, Button, Alert, Card, Spinner } from 'react-bootstrap'
+import { Link, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import type { RootState } from '../store'
+import { apiService } from '../services/api'
 import Breadcrumbs from '../components/Breadcrumbs'
 
 const PvlcRegisterPage: React.FC = () => {
+	const navigate = useNavigate()
+
+	const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+
 	const [formData, setFormData] = useState({
 		login: '',
 		password: '',
@@ -14,6 +21,14 @@ const PvlcRegisterPage: React.FC = () => {
 
 	const [error, setError] = useState('')
 	const [success, setSuccess] = useState('')
+	const [loading, setLoading] = useState(false)
+
+	// Редирект если уже авторизован
+	useEffect(() => {
+		if (isAuthenticated) {
+			navigate('/pvlc_patients')
+		}
+	}, [isAuthenticated, navigate])
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value, type, checked } = e.target
@@ -27,25 +42,36 @@ const PvlcRegisterPage: React.FC = () => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
+		setLoading(true)
+		setError('')
+		setSuccess('')
 
 		if (!formData.login || !formData.password) {
 			setError('Заполните все обязательные поля')
+			setLoading(false)
 			return
 		}
 
 		if (formData.password !== formData.confirmPassword) {
 			setError('Пароли не совпадают')
+			setLoading(false)
 			return
 		}
 
 		if (formData.password.length < 6) {
 			setError('Пароль должен содержать минимум 6 символов')
+			setLoading(false)
 			return
 		}
 
 		try {
-			// Здесь будет вызов API для регистрации
-			// await api.medUsers.medUsersRegisterCreate(formData)
+			// ИСПРАВЛЕНИЕ: Используем apiService для регистрации
+			await apiService.registerUser({
+				login: formData.login,
+				password: formData.password,
+				is_moderator: formData.is_moderator,
+			})
+
 			setSuccess('Регистрация успешна! Теперь вы можете войти в систему.')
 			setFormData({
 				login: '',
@@ -53,9 +79,19 @@ const PvlcRegisterPage: React.FC = () => {
 				confirmPassword: '',
 				is_moderator: false,
 			})
-		} catch {
-			// ИСПРАВЛЕНИЕ: Убрали неиспользуемую переменную error
-			setError('Ошибка регистрации. Попробуйте еще раз.')
+
+			// Автоматический редирект на страницу логина через 2 секунды
+			setTimeout(() => {
+				navigate('/pvlc_login')
+			}, 2000)
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error
+					? err.message
+					: 'Ошибка регистрации. Попробуйте еще раз.'
+			setError(errorMessage)
+		} finally {
+			setLoading(false)
 		}
 	}
 
@@ -98,6 +134,7 @@ const PvlcRegisterPage: React.FC = () => {
 										onChange={handleChange}
 										placeholder='Придумайте логин'
 										required
+										disabled={loading}
 									/>
 								</Form.Group>
 
@@ -110,6 +147,7 @@ const PvlcRegisterPage: React.FC = () => {
 										onChange={handleChange}
 										placeholder='Придумайте пароль'
 										required
+										disabled={loading}
 									/>
 								</Form.Group>
 
@@ -122,6 +160,7 @@ const PvlcRegisterPage: React.FC = () => {
 										onChange={handleChange}
 										placeholder='Повторите пароль'
 										required
+										disabled={loading}
 									/>
 								</Form.Group>
 
@@ -132,6 +171,7 @@ const PvlcRegisterPage: React.FC = () => {
 										label='Регистрация как модератор'
 										checked={formData.is_moderator}
 										onChange={handleChange}
+										disabled={loading}
 									/>
 								</Form.Group>
 
@@ -140,12 +180,27 @@ const PvlcRegisterPage: React.FC = () => {
 									type='submit'
 									className='w-100'
 									disabled={
+										loading ||
 										!formData.login ||
 										!formData.password ||
 										!formData.confirmPassword
 									}
 								>
-									Зарегистрироваться
+									{loading ? (
+										<>
+											<Spinner
+												as='span'
+												animation='border'
+												size='sm'
+												role='status'
+												aria-hidden='true'
+												className='me-2'
+											/>
+											Регистрация...
+										</>
+									) : (
+										'Зарегистрироваться'
+									)}
 								</Button>
 							</Form>
 

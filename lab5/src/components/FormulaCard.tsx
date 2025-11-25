@@ -2,13 +2,14 @@
 import React from 'react'
 import type { PvlcMedFormula } from '../types'
 import { useNavigate } from 'react-router-dom'
-import { apiService } from '../services/api'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch, RootState } from '../store'
 import { addToCart } from '../store/slices/medCartSlice'
+import { apiService } from '../services/api'
 
 interface FormulaCardProps {
 	formula: PvlcMedFormula
+	onAddToCart?: () => void
 }
 
 // Интерфейс для ошибки API
@@ -17,7 +18,7 @@ interface ApiError {
 	message?: string
 }
 
-const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
+const FormulaCard: React.FC<FormulaCardProps> = ({ formula, onAddToCart }) => {
 	const navigate = useNavigate()
 	const dispatch = useDispatch<AppDispatch>()
 
@@ -36,10 +37,13 @@ const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
 
 		try {
 			await dispatch(addToCart(formula.id)).unwrap()
-			// Можно добавить уведомление об успешном добавлении
+			// Вызываем callback для обновления корзины
+			if (onAddToCart) {
+				onAddToCart()
+			}
 		} catch (error) {
 			console.error('Error adding to cart:', error)
-			// ИСПРАВЛЕНИЕ: Перенаправляем на страницу логина при ошибке 401 с правильной типизацией
+			// Перенаправляем на страницу логина при ошибке 401 с правильной типизацией
 			const apiError = error as ApiError
 			if (apiError.status === 401) {
 				navigate('/pvlc_login')
@@ -69,7 +73,7 @@ const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
 						Подробнее
 					</button>
 
-					{/* ДОБАВЛЕНА КНОПКА "ДОБАВИТЬ" */}
+					{/* КНОПКА "ДОБАВИТЬ" */}
 					{isAuthenticated && (
 						<button
 							className='btn btn-select'
