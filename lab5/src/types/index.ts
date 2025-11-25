@@ -35,4 +35,17 @@ export interface CartIconResponse {
 	med_card_id: number
 	med_item_count: number
 }
-// КОНЕЦ НОВЫХ ДОБАВЛЕНИЙ
+
+// ИСПРАВЛЕНИЕ: Добавляем интерфейсы для API ошибок
+export interface ApiError {
+	status?: number
+	message?: string
+	code?: string
+}
+
+// Интерфейсы для API ответов
+export interface ApiResponse<T> {
+	data?: T
+	error?: string
+	status?: string
+}

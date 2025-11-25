@@ -52,6 +52,7 @@ func (a *API) GetCartIcon(c *gin.Context) {
 		count = 0
 	}
 
+	// ИСПРАВЛЕНИЕ: Возвращаем в стандартном формате
 	a.successResponse(c, ds.CartIconResponse{
 		MedCardID:    card.ID,
 		MedItemCount: count,

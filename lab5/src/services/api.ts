@@ -14,6 +14,24 @@ interface ApiConfig {
 	securityWorker?: () => { headers: { Authorization: string } }
 }
 
+// Интерфейсы для ответов API
+interface ApiResponse<T> {
+	data?: T
+}
+
+interface ApiFormulaResponse {
+	id?: number
+	title?: string
+	description?: string
+	formula?: string
+	image_url?: string
+	category?: string
+	gender?: string
+	min_age?: number
+	max_age?: number
+	is_active?: boolean
+}
+
 class ApiService {
 	private useMock = false
 	private backendChecked = false
@@ -31,7 +49,7 @@ class ApiService {
 		return localStorage.getItem('med_token')
 	}
 
-	// ИСПРАВЛЕНИЕ: Правильное создание авторизованного API инстанса без any
+	// ИСПРАВЛЕНИЕ: Правильное создание авторизованного API инстанса
 	private getAuthorizedApi() {
 		const token = this.getAuthToken()
 		const config: ApiConfig = {
@@ -219,8 +237,27 @@ class ApiService {
 
 			const response = await apiInstance.api.pvlcMedFormulasList(params)
 
-			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
-			const apiFormulas = response.data
+			// ИСПРАВЛЕНИЕ: Правильная обработка ответа API с типизацией
+			const apiData = response.data as unknown as
+				| ApiResponse<ApiFormulaResponse[]>
+				| ApiFormulaResponse[]
+
+			// Проверяем формат ответа - может быть data.data или просто data
+			let apiFormulas: ApiFormulaResponse[] = []
+
+			if (apiData && typeof apiData === 'object') {
+				if (Array.isArray(apiData)) {
+					// Если ответ - массив формул
+					apiFormulas = apiData
+				} else if ('data' in apiData && Array.isArray(apiData.data)) {
+					// Если ответ { data: [...] }
+					apiFormulas = apiData.data
+				} else {
+					console.warn('Unexpected API response format:', apiData)
+					apiFormulas = []
+				}
+			}
+
 			const formulas: PvlcMedFormula[] = apiFormulas.map(apiFormula => ({
 				id: apiFormula.id || 0,
 				title: apiFormula.title || '',
@@ -258,8 +295,24 @@ class ApiService {
 
 			const response = await apiInstance.api.pvlcMedFormulasDetail(id)
 
-			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип
-			const apiFormula = response.data
+			// ИСПРАВЛЕНИЕ: Преобразуем данные API в наш тип с правильной типизацией
+			const apiData = response.data as unknown as
+				| ApiResponse<ApiFormulaResponse>
+				| ApiFormulaResponse
+
+			let apiFormula: ApiFormulaResponse | undefined
+
+			// Проверяем формат ответа
+			if (apiData && typeof apiData === 'object') {
+				if ('data' in apiData && apiData.data) {
+					// Если ответ { data: {...} }
+					apiFormula = apiData.data
+				} else if ('id' in apiData) {
+					// Если ответ напрямую формула
+					apiFormula = apiData as ApiFormulaResponse
+				}
+			}
+
 			if (!apiFormula) return null
 
 			const formula: PvlcMedFormula = {

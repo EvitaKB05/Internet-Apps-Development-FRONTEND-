@@ -4,11 +4,17 @@ import type { PvlcMedFormula } from '../types'
 import { useNavigate } from 'react-router-dom'
 import { apiService } from '../services/api'
 import { useDispatch, useSelector } from 'react-redux'
-import type { AppDispatch, RootState } from '../store' // ИСПРАВЛЕН ИМПОРТ
+import type { AppDispatch, RootState } from '../store'
 import { addToCart } from '../store/slices/medCartSlice'
 
 interface FormulaCardProps {
 	formula: PvlcMedFormula
+}
+
+// Интерфейс для ошибки API
+interface ApiError {
+	status?: number
+	message?: string
 }
 
 const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
@@ -33,6 +39,11 @@ const FormulaCard: React.FC<FormulaCardProps> = ({ formula }) => {
 			// Можно добавить уведомление об успешном добавлении
 		} catch (error) {
 			console.error('Error adding to cart:', error)
+			// ИСПРАВЛЕНИЕ: Перенаправляем на страницу логина при ошибке 401 с правильной типизацией
+			const apiError = error as ApiError
+			if (apiError.status === 401) {
+				navigate('/pvlc_login')
+			}
 		}
 	}
 
