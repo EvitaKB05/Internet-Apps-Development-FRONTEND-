@@ -136,7 +136,11 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		logrus.Debug("Token extracted: ", tokenString[:10]+"...") // Логируем только начало токена
+		if len(tokenString) > 10 {
+			logrus.Debug("Token extracted: ", tokenString[:10]+"...")
+		} else {
+			logrus.Debug("Token extracted: ", tokenString)
+		}
 
 		claims, err := ParseToken(tokenString)
 		if err != nil {

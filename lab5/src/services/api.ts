@@ -26,11 +26,20 @@ interface DataWrapper {
 }
 
 class ApiService {
-	private getAuthorizedApi() {
+	// Создаем отдельный метод для получения токена
+	private getToken(): string {
 		const token = localStorage.getItem('med_token')
+		console.log('Token from localStorage:', token ? 'present' : 'missing')
 		if (!token) {
-			throw new Error('No authentication token found')
+			throw new Error('No authentication token found. Please login.')
 		}
+		return token
+	}
+
+	// Создаем авторизованный API инстанс с текущим токеном
+	private get authorizedApi() {
+		const token = this.getToken()
+		console.log('Creating authorized API with token')
 		return createAuthorizedApi(token)
 	}
 
@@ -38,11 +47,22 @@ class ApiService {
 	async login(
 		credentials: ApiLoginRequest
 	): Promise<{ token: string; user: DsMedUserResponse; expires_at: string }> {
+		console.log('Sending login request with:', credentials)
 		const response = await api.api.authLoginCreate(credentials)
-		// ИСПРАВЛЕНИЕ: Гарантируем что все поля будут заполнены
+
+		console.log('Full login response:', response)
+		console.log('Response data:', response.data)
+
 		const data = response.data
+
+		// Проверяем структуру ответа
+		if (!data.token) {
+			console.error('No token in response:', data)
+			throw new Error('No token received from server')
+		}
+
 		return {
-			token: data.token || '',
+			token: data.token,
 			user: {
 				id: data.user?.id || 0,
 				login: data.user?.login || '',
@@ -56,8 +76,9 @@ class ApiService {
 		const token = localStorage.getItem('med_token')
 		if (token) {
 			try {
-				const authorizedApi = this.getAuthorizedApi()
-				await authorizedApi.api.authLogoutCreate({ token })
+				// Используем временный авторизованный API для logout
+				const logoutApi = createAuthorizedApi(token)
+				await logoutApi.api.authLogoutCreate({ token })
 			} catch (error) {
 				console.warn(
 					'Logout API call failed, but clearing local storage anyway:',
@@ -68,8 +89,7 @@ class ApiService {
 	}
 
 	async getProfile(): Promise<DsMedUserResponse> {
-		const authorizedApi = this.getAuthorizedApi()
-		const response = await authorizedApi.api.authProfileList()
+		const response = await this.authorizedApi.api.authProfileList()
 		return response.data
 	}
 
@@ -148,10 +168,9 @@ class ApiService {
 	}
 
 	async addToCart(formulaId: number): Promise<AddToCartResponse> {
-		const authorizedApi = this.getAuthorizedApi()
-		const response = await authorizedApi.api.pvlcMedFormulasAddToCartCreate(
-			formulaId
-		)
+		console.log('Adding formula to cart:', formulaId)
+		const response =
+			await this.authorizedApi.api.pvlcMedFormulasAddToCartCreate(formulaId)
 		// ИСПРАВЛЕНИЕ: Обрабатываем формат ответа без any
 		const responseData = response.data
 		let data: AddToCartResponse
@@ -180,8 +199,7 @@ class ApiService {
 		date_to?: string
 	}): Promise<DsPvlcMedCardResponse[]> {
 		try {
-			const authorizedApi = this.getAuthorizedApi()
-			const response = await authorizedApi.api.pvlcMedCardsList(params)
+			const response = await this.authorizedApi.api.pvlcMedCardsList(params)
 
 			// ИСПРАВЛЕНИЕ: Обрабатываем разные форматы ответа без any
 			const responseData = response.data
@@ -213,8 +231,7 @@ class ApiService {
 	}
 
 	async getMedCard(cardId: number): Promise<DsPvlcMedCardResponse> {
-		const authorizedApi = this.getAuthorizedApi()
-		const response = await authorizedApi.api.pvlcMedCardsDetail(cardId)
+		const response = await this.authorizedApi.api.pvlcMedCardsDetail(cardId)
 		// ИСПРАВЛЕНИЕ: Обрабатываем формат ответа без any
 		const responseData = response.data
 		if (
@@ -232,24 +249,20 @@ class ApiService {
 		cardId: number,
 		data: UpdateMedCardRequest
 	): Promise<void> {
-		const authorizedApi = this.getAuthorizedApi()
-		await authorizedApi.api.pvlcMedCardsUpdate(cardId, data)
+		await this.authorizedApi.api.pvlcMedCardsUpdate(cardId, data)
 	}
 
 	async finalizeMedCard(cardId: number): Promise<void> {
-		const authorizedApi = this.getAuthorizedApi()
-		await authorizedApi.api.pvlcMedCardsFormUpdate(cardId)
+		await this.authorizedApi.api.pvlcMedCardsFormUpdate(cardId)
 	}
 
 	async deleteMedCard(cardId: number): Promise<void> {
-		const authorizedApi = this.getAuthorizedApi()
-		await authorizedApi.api.pvlcMedCardsDelete(cardId)
+		await this.authorizedApi.api.pvlcMedCardsDelete(cardId)
 	}
 
 	async deleteCalculation(cardId: number, formulaId: number): Promise<void> {
-		const authorizedApi = this.getAuthorizedApi()
 		// Используем прямой вызов API для удаления расчета
-		await authorizedApi.request({
+		await this.authorizedApi.request({
 			method: 'DELETE',
 			path: '/api/med-mm-pvlc-calculations',
 			body: {

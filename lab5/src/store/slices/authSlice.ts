@@ -26,6 +26,7 @@ interface AuthState {
 	token: string | null
 	isAuthenticated: boolean
 	loading: boolean
+	expires_at?: string
 	error: string | null
 }
 
@@ -45,9 +46,11 @@ export const loginUser = createAsyncThunk(
 			const response = await api.api.authLoginCreate(credentials)
 			const data = response.data as LoginResponse
 
-			// Сохраняем токен в localStorage
+			// ВАЖНО: Сохраняем токен в localStorage
 			localStorage.setItem('med_token', data.token)
 			localStorage.setItem('med_user', JSON.stringify(data.user))
+
+			console.log('Token saved to localStorage:', data.token) // ДЛЯ ОТЛАДКИ
 
 			return data
 		} catch (error: unknown) {
@@ -123,11 +126,24 @@ const authSlice = createSlice({
 			})
 			.addCase(loginUser.fulfilled, (state, action) => {
 				state.loading = false
-				state.isAuthenticated = true
+				state.isAuthenticated = true // ВАЖНО: устанавливаем флаг аутентификации
 				state.user = action.payload.user
 				state.token = action.payload.token
+				state.expires_at = action.payload.expires_at
 				state.error = null
+
+				// Устанавливаем security data для API
+				api.setSecurityData({ accessToken: action.payload.token })
+
+				console.log('Login successful, isAuthenticated set to:', true) // ДЛЯ ОТЛАДКИ
 			})
+			/*.addCase(loginUser.fulfilled, (state, action) => {
+				const { user, token, expires_at } = action.payload
+				state.user = user
+				state.token = token
+				state.expires_at = expires_at || undefined
+				api.setSecurityData({ accessToken: token || '' })
+			}) */
 			.addCase(loginUser.rejected, (state, action) => {
 				state.loading = false
 				state.isAuthenticated = false
@@ -139,6 +155,7 @@ const authSlice = createSlice({
 				state.token = null
 				state.isAuthenticated = false
 				state.error = null
+				api.setSecurityData(null)
 			})
 			.addCase(logoutUser.rejected, state => {
 				state.user = null

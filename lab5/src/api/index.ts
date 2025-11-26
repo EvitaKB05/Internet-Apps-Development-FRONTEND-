@@ -3,8 +3,6 @@ import { Api } from './Api'
 
 // Используем конфигурацию из target_config для определения базового URL
 const getApiBaseUrl = () => {
-	// ИСПРАВЛЕНИЕ: Всегда используем прямой URL для разработки
-	// Убираем дублирование /api в URL
 	return 'http://localhost:8080'
 }
 
@@ -15,14 +13,30 @@ export const api = new Api({
 
 // Функция для создания авторизованного инстанса API
 export const createAuthorizedApi = (token: string) => {
-	return new Api({
+	console.log('Creating authorized API with token length:', token.length)
+
+	const authorizedApi = new Api({
 		baseURL: getApiBaseUrl(),
-		securityWorker: () => {
-			return {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
+		securityWorker: securityData => {
+			console.log('Security worker called with:', securityData)
+			// Используем securityData который мы установим через setSecurityData
+			if (
+				securityData &&
+				typeof securityData === 'object' &&
+				'accessToken' in securityData
+			) {
+				return {
+					headers: {
+						Authorization: `Bearer ${securityData.accessToken}`,
+					},
+				}
 			}
+			return {}
 		},
 	})
+
+	// Устанавливаем securityData чтобы securityWorker мог его использовать
+	authorizedApi.setSecurityData({ accessToken: token })
+
+	return authorizedApi
 }

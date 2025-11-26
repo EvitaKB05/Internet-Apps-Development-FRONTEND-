@@ -30,7 +30,15 @@ const FormulaCard: React.FC<FormulaCardProps> = ({ formula, onAddToCart }) => {
 	}
 
 	const handleAddToCart = async () => {
+		const token = localStorage.getItem('med_token')
+		console.log('Auth state in handleAddToCart:', {
+			isAuthenticated,
+			hasToken: !!token,
+			token: token ? 'present' : 'missing',
+		})
+
 		if (!isAuthenticated) {
+			console.log('Not authenticated, redirecting to login')
 			navigate('/pvlc_login')
 			return
 		}

@@ -24,9 +24,20 @@ const PvlcPatientPage: React.FC = () => {
 			setError(null)
 			const data = await apiService.getFormulaById(formulaId)
 			if (data) {
-				setFormula(data)
-			} else {
-				setError('Категория не найдена')
+				// Преобразование типов
+				const transformedFormula: PvlcMedFormula = {
+					id: data.id || 0,
+					title: data.title || '',
+					description: data.description || '',
+					formula: data.formula || '',
+					image_url: data.image_url || '',
+					category: data.category || '',
+					gender: data.gender || '',
+					min_age: data.min_age || 0,
+					max_age: data.max_age || 0,
+					is_active: data.is_active || false,
+				}
+				setFormula(transformedFormula)
 			}
 		} catch (err) {
 			setError('Ошибка загрузки категории')

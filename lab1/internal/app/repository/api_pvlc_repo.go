@@ -169,97 +169,99 @@ func (r *Repository) CalculateTotalDjel(cardID uint) (float64, error) {
 
 // calculateDjelByFormula - реальный расчет ДЖЕЛ по формуле для API (без изменений)
 func (r *Repository) calculateDjelByFormula(formula string, height float64) float64 {
-    // Определяем средний возраст на основе формулы
-    age := r.getAgeByFormula(formula)
-    
-    // Детальный парсинг формул с использованием среднего возраста
-    switch {
-    // Мальчики 4-7 лет: ДЖЕЛ (л) = (0.043 × Рост) - (0.015 × Возраст) - 2.89
-    case strings.Contains(formula, "2.89"):
-        return (0.043 * height) - (0.015 * age) - 2.89
-    
-    // Девочки 4-7 лет: ДЖЕЛ (л) = (0.037 × Рост) - (0.012 × Возраст) - 2.54
-    case strings.Contains(formula, "2.54"):
-        return (0.037 * height) - (0.012 * age) - 2.54
-    
-    // Мальчики 8-12 лет: ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 4.60
-    case strings.Contains(formula, "4.60"):
-        return (0.052 * height) - (0.022 * age) - 4.60
-    
-    // Девочки 8-12 лет: ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 3.70
-    case strings.Contains(formula, "3.70"):
-        return (0.041 * height) - (0.018 * age) - 3.70
-    
-    // Юноши 13-17 лет: ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 4.20
-    case strings.Contains(formula, "4.20"):
-        return (0.052 * height) - (0.022 * age) - 4.20
-    
-    // Девушки 13-17 лет: ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 3.20
-    case strings.Contains(formula, "3.20"):
-        return (0.041 * height) - (0.018 * age) - 3.20
-    
-    // Мужчины 18-60 лет: ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 3.60
-    case strings.Contains(formula, "3.60"):
-        return (0.052 * height) - (0.022 * age) - 3.60
-    
-    // Женщины 18-60 лет: ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 2.69
-    case strings.Contains(formula, "2.69"):
-        return (0.041 * height) - (0.018 * age) - 2.69
-    
-    // Пожилые 60+ лет: ДЖЕЛ (л) = (0.044 × Рост) - (0.024 × Возраст) - 2.86
-    case strings.Contains(formula, "2.86"):
-        return (0.044 * height) - (0.024 * age) - 2.86
-    
-    default:
-        fmt.Printf("Не удалось распознать формулу: %s\n", formula)
-        return 0.0
-    }
+	// Определяем средний возраст на основе формулы
+	age := r.getAgeByFormula(formula)
+
+	// Детальный парсинг формул с использованием среднего возраста
+	switch {
+	// Мальчики 4-7 лет: ДЖЕЛ (л) = (0.043 × Рост) - (0.015 × Возраст) - 2.89
+	case strings.Contains(formula, "2.89"):
+		return (0.043 * height) - (0.015 * age) - 2.89
+
+	// Девочки 4-7 лет: ДЖЕЛ (л) = (0.037 × Рост) - (0.012 × Возраст) - 2.54
+	case strings.Contains(formula, "2.54"):
+		return (0.037 * height) - (0.012 * age) - 2.54
+
+	// Мальчики 8-12 лет: ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 4.60
+	case strings.Contains(formula, "4.60"):
+		return (0.052 * height) - (0.022 * age) - 4.60
+
+	// Девочки 8-12 лет: ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 3.70
+	case strings.Contains(formula, "3.70"):
+		return (0.041 * height) - (0.018 * age) - 3.70
+
+	// Юноши 13-17 лет: ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 4.20
+	case strings.Contains(formula, "4.20"):
+		return (0.052 * height) - (0.022 * age) - 4.20
+
+	// Девушки 13-17 лет: ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 3.20
+	case strings.Contains(formula, "3.20"):
+		return (0.041 * height) - (0.018 * age) - 3.20
+
+	// Мужчины 18-60 лет: ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 3.60
+	case strings.Contains(formula, "3.60"):
+		return (0.052 * height) - (0.022 * age) - 3.60
+
+	// Женщины 18-60 лет: ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 2.69
+	case strings.Contains(formula, "2.69"):
+		return (0.041 * height) - (0.018 * age) - 2.69
+
+	// Пожилые 60+ лет: ДЖЕЛ (л) = (0.044 × Рост) - (0.024 × Возраст) - 2.86
+	case strings.Contains(formula, "2.86"):
+		return (0.044 * height) - (0.024 * age) - 2.86
+
+	default:
+		fmt.Printf("Не удалось распознать формулу: %s\n", formula)
+		return 0.0
+	}
 }
+
 // getAgeByFormula определяет средний возраст для каждой возрастной категории
 func (r *Repository) getAgeByFormula(formula string) float64 {
-    // Анализируем формулу для определения возрастной категории
-    switch {
-    // Дети 4-7 лет
-    case strings.Contains(formula, "4-7"):
-        return 5.5 // средний возраст между 4 и 7 годами
-    
-    // Дети 8-12 лет  
-    case strings.Contains(formula, "8-12"):
-        return 10.0 // средний возраст между 8 и 12 годами
-    
-    // Подростки 13-17 лет
-    case strings.Contains(formula, "13-17"):
-        return 15.0 // средний возраст между 13 и 17 годами
-    
-    // Взрослые 18-60 лет
-    case strings.Contains(formula, "18-60"):
-        return 39.0 // средний возраст между 18 и 60 годами
-    
-    // Пожилые 60+ лет
-    case strings.Contains(formula, "60+"):
-        return 75.0 // средний возраст для пожилых (60-90 лет)
-    
-    // Резервные проверки по константам формул
-    case strings.Contains(formula, "2.89"), strings.Contains(formula, "2.54"):
-        return 5.5 // 4-7 лет
-    
-    case strings.Contains(formula, "4.60"), strings.Contains(formula, "3.70"):
-        return 10.0 // 8-12 лет
-    
-    case strings.Contains(formula, "4.20"), strings.Contains(formula, "3.20"):
-        return 15.0 // 13-17 лет
-    
-    case strings.Contains(formula, "3.60"), strings.Contains(formula, "2.69"):
-        return 39.0 // 18-60 лет
-    
-    case strings.Contains(formula, "2.86"):
-        return 75.0 // 60+ лет
-    
-    default:
-        fmt.Printf("Не удалось определить возраст для формулы: %s\n", formula)
-        return 25.0 // значение по умолчанию
-    }
+	// Анализируем формулу для определения возрастной категории
+	switch {
+	// Дети 4-7 лет
+	case strings.Contains(formula, "4-7"):
+		return 5.5 // средний возраст между 4 и 7 годами
+
+	// Дети 8-12 лет
+	case strings.Contains(formula, "8-12"):
+		return 10.0 // средний возраст между 8 и 12 годами
+
+	// Подростки 13-17 лет
+	case strings.Contains(formula, "13-17"):
+		return 15.0 // средний возраст между 13 и 17 годами
+
+	// Взрослые 18-60 лет
+	case strings.Contains(formula, "18-60"):
+		return 39.0 // средний возраст между 18 и 60 годами
+
+	// Пожилые 60+ лет
+	case strings.Contains(formula, "60+"):
+		return 75.0 // средний возраст для пожилых (60-90 лет)
+
+	// Резервные проверки по константам формул
+	case strings.Contains(formula, "2.89"), strings.Contains(formula, "2.54"):
+		return 5.5 // 4-7 лет
+
+	case strings.Contains(formula, "4.60"), strings.Contains(formula, "3.70"):
+		return 10.0 // 8-12 лет
+
+	case strings.Contains(formula, "4.20"), strings.Contains(formula, "3.20"):
+		return 15.0 // 13-17 лет
+
+	case strings.Contains(formula, "3.60"), strings.Contains(formula, "2.69"):
+		return 39.0 // 18-60 лет
+
+	case strings.Contains(formula, "2.86"):
+		return 75.0 // 60+ лет
+
+	default:
+		fmt.Printf("Не удалось определить возраст для формулы: %s\n", formula)
+		return 25.0 // значение по умолчанию
+	}
 }
+
 // ==================== МЕТОДЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ (API) ====================
 
 // GetMedUserByID - получение пользователя по ID для API (бывший GetUserByID)
