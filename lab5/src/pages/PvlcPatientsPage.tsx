@@ -79,10 +79,25 @@ const PvlcPatientsPage: React.FC = () => {
 			setError(null)
 			// Загружаем ВСЕ формулы (без фильтров)
 			const data = await apiService.getFormulas()
-			setFormulas(data)
+			// ИСПРАВЛЕНИЕ: Преобразуем DsPvlcMedFormulaResponse в PvlcMedFormula
+			const transformedFormulas: PvlcMedFormula[] = data.map(formula => ({
+				id: formula.id || 0, // Гарантируем number
+				title: formula.title || '',
+				description: formula.description || '',
+				formula: formula.formula || '',
+				image_url: formula.image_url || '',
+				category: formula.category || '',
+				gender: formula.gender || '',
+				min_age: formula.min_age || 0,
+				max_age: formula.max_age || 0,
+				is_active: formula.is_active || false,
+			}))
+			setFormulas(transformedFormulas)
 		} catch (err) {
-			setError('Ошибка загрузки категорий пациентов')
 			console.error('Error loading formulas:', err)
+			setError('Ошибка загрузки категорий пациентов')
+			// Устанавливаем пустой массив при ошибке
+			setFormulas([])
 		} finally {
 			setLoading(false)
 		}

@@ -1,4 +1,3 @@
-// internal/api/pvlc_methods_handlers.go
 package api
 
 import (
@@ -14,14 +13,12 @@ import (
 )
 
 // API - структура API с зависимостями
-// ОБНОВЛЕНО ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4 - добавлено поле redis
 type API struct {
 	repo  *repository.Repository
 	redis *redis.Client
 }
 
 // NewAPI создает новый экземпляр API
-// ИСПРАВЛЕНО: добавляем параметр Redis
 func NewAPI(repo *repository.Repository, redisClient *redis.Client) *API {
 	return &API{
 		repo:  repo,
@@ -31,7 +28,6 @@ func NewAPI(repo *repository.Repository, redisClient *redis.Client) *API {
 
 // Вспомогательные функции для ответов
 func (a *API) successResponse(c *gin.Context, data interface{}) {
-	// ИСПРАВЛЕНИЕ: Стандартизируем формат ответа
 	c.JSON(http.StatusOK, gin.H{
 		"data": data,
 	})
@@ -87,7 +83,6 @@ func (a *API) GetPvlcMedFormulas(c *gin.Context) {
 		})
 	}
 
-	// ИСПРАВЛЕНИЕ: Возвращаем в стандартном формате
 	a.successResponse(c, response)
 }
 
@@ -129,7 +124,6 @@ func (a *API) GetPvlcMedFormula(c *gin.Context) {
 		IsActive:    formula.IsActive,
 	}
 
-	// ИСПРАВЛЕНИЕ: Возвращаем в стандартном формате
 	a.successResponse(c, response)
 }
 
@@ -402,7 +396,7 @@ func (a *API) AddPvlcMedFormulaToCart(c *gin.Context) {
 	}
 
 	a.successResponse(c, gin.H{
-		"message":     "пациент добавлен в мед-карту",
+		"message":     "Формула добавлена в заявку",
 		"med_card_id": card.ID,
 	})
 }

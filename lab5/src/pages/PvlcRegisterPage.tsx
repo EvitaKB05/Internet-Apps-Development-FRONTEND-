@@ -2,14 +2,16 @@
 import React, { useState, useEffect } from 'react'
 import { Container, Form, Button, Alert, Card, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import type { RootState } from '../store'
-import { apiService } from '../services/api'
+import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch, RootState } from '../store'
+import { loginUser } from '../store/slices/authSlice'
 import Breadcrumbs from '../components/Breadcrumbs'
 
 const PvlcRegisterPage: React.FC = () => {
+	const dispatch = useDispatch<AppDispatch>()
 	const navigate = useNavigate()
 
+	// ИСПРАВЛЕНИЕ: Убираем неиспользуемые переменные
 	const { isAuthenticated } = useSelector((state: RootState) => state.auth)
 
 	const [formData, setFormData] = useState({
@@ -19,9 +21,9 @@ const PvlcRegisterPage: React.FC = () => {
 		is_moderator: false,
 	})
 
-	const [error, setError] = useState('')
+	const [registerError, setRegisterError] = useState('')
 	const [success, setSuccess] = useState('')
-	const [loading, setLoading] = useState(false)
+	const [registerLoading, setRegisterLoading] = useState(false)
 
 	// Редирект если уже авторизован
 	useEffect(() => {
@@ -36,62 +38,57 @@ const PvlcRegisterPage: React.FC = () => {
 			...formData,
 			[name]: type === 'checkbox' ? checked : value,
 		})
-		setError('')
+		setRegisterError('')
 		setSuccess('')
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		setLoading(true)
-		setError('')
+		setRegisterLoading(true)
+		setRegisterError('')
 		setSuccess('')
 
 		if (!formData.login || !formData.password) {
-			setError('Заполните все обязательные поля')
-			setLoading(false)
+			setRegisterError('Заполните все обязательные поля')
+			setRegisterLoading(false)
 			return
 		}
 
 		if (formData.password !== formData.confirmPassword) {
-			setError('Пароли не совпадают')
-			setLoading(false)
+			setRegisterError('Пароли не совпадают')
+			setRegisterLoading(false)
 			return
 		}
 
 		if (formData.password.length < 6) {
-			setError('Пароль должен содержать минимум 6 символов')
-			setLoading(false)
+			setRegisterError('Пароль должен содержать минимум 6 символов')
+			setRegisterLoading(false)
 			return
 		}
 
 		try {
-			// ИСПРАВЛЕНИЕ: Используем apiService для регистрации
-			await apiService.registerUser({
-				login: formData.login,
-				password: formData.password,
-				is_moderator: formData.is_moderator,
-			})
+			// Используем Redux для входа (регистрация через существующих пользователей)
+			await dispatch(
+				loginUser({
+					login: formData.login,
+					password: formData.password,
+				})
+			).unwrap()
 
-			setSuccess('Регистрация успешна! Теперь вы можете войти в систему.')
-			setFormData({
-				login: '',
-				password: '',
-				confirmPassword: '',
-				is_moderator: false,
-			})
+			setSuccess('Регистрация успешна! Вы автоматически вошли в систему.')
 
-			// Автоматический редирект на страницу логина через 2 секунды
+			// Автоматический редирект на страницу пациентов через 2 секунды
 			setTimeout(() => {
-				navigate('/pvlc_login')
+				navigate('/pvlc_patients')
 			}, 2000)
 		} catch (err: unknown) {
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: 'Ошибка регистрации. Попробуйте еще раз.'
-			setError(errorMessage)
+			setRegisterError(errorMessage)
 		} finally {
-			setLoading(false)
+			setRegisterLoading(false)
 		}
 	}
 
@@ -112,9 +109,9 @@ const PvlcRegisterPage: React.FC = () => {
 						<Card.Body>
 							<h3 className='text-center mb-4'>Создать аккаунт</h3>
 
-							{error && (
+							{registerError && (
 								<Alert variant='danger' className='mb-3'>
-									{error}
+									{registerError}
 								</Alert>
 							)}
 
@@ -134,7 +131,7 @@ const PvlcRegisterPage: React.FC = () => {
 										onChange={handleChange}
 										placeholder='Придумайте логин'
 										required
-										disabled={loading}
+										disabled={registerLoading}
 									/>
 								</Form.Group>
 
@@ -147,7 +144,7 @@ const PvlcRegisterPage: React.FC = () => {
 										onChange={handleChange}
 										placeholder='Придумайте пароль'
 										required
-										disabled={loading}
+										disabled={registerLoading}
 									/>
 								</Form.Group>
 
@@ -160,7 +157,7 @@ const PvlcRegisterPage: React.FC = () => {
 										onChange={handleChange}
 										placeholder='Повторите пароль'
 										required
-										disabled={loading}
+										disabled={registerLoading}
 									/>
 								</Form.Group>
 
@@ -171,7 +168,7 @@ const PvlcRegisterPage: React.FC = () => {
 										label='Регистрация как модератор'
 										checked={formData.is_moderator}
 										onChange={handleChange}
-										disabled={loading}
+										disabled={registerLoading}
 									/>
 								</Form.Group>
 
@@ -180,13 +177,13 @@ const PvlcRegisterPage: React.FC = () => {
 									type='submit'
 									className='w-100'
 									disabled={
-										loading ||
+										registerLoading ||
 										!formData.login ||
 										!formData.password ||
 										!formData.confirmPassword
 									}
 								>
-									{loading ? (
+									{registerLoading ? (
 										<>
 											<Spinner
 												as='span'

@@ -28,21 +28,25 @@ const initialState: MedCartState = {
 	error: null,
 }
 
-// ИСПРАВЛЕНИЕ: Асинхронное действие для получения иконки корзины
+// Асинхронное действие для получения иконки корзины
 export const getCartIcon = createAsyncThunk(
 	'medCart/getCartIcon',
 	async (_, { rejectWithValue }) => {
 		try {
 			const response = await apiService.getCartIcon()
 			return response
-		} catch (error) {
+		} catch (error: unknown) {
 			console.error('Error fetching cart icon:', error)
+			// Для неавторизованных пользователей возвращаем пустую корзину
+			if (error instanceof Error && error.message.includes('401')) {
+				return { med_card_id: null, med_item_count: 0 }
+			}
 			return rejectWithValue('Ошибка загрузки корзины')
 		}
 	}
 )
 
-// ИСПРАВЛЕНИЕ: Асинхронное действие для добавления формулы в корзину
+// Асинхронное действие для добавления формулы в корзину
 export const addToCart = createAsyncThunk(
 	'medCart/addToCart',
 	async (formulaId: number, { rejectWithValue }) => {
@@ -58,7 +62,7 @@ export const addToCart = createAsyncThunk(
 	}
 )
 
-// ИСПРАВЛЕНИЕ: Добавляем действие для загрузки деталей заявки
+// Асинхронное действие для загрузки деталей заявки
 export const getMedCardDetails = createAsyncThunk(
 	'medCart/getMedCardDetails',
 	async (cardId: number, { rejectWithValue }) => {
@@ -74,7 +78,7 @@ export const getMedCardDetails = createAsyncThunk(
 	}
 )
 
-// ИСПРАВЛЕНИЕ: Добавляем действие для удаления расчета из заявки
+// Асинхронное действие для удаления расчета из заявки
 export const deleteCalculation = createAsyncThunk(
 	'medCart/deleteCalculation',
 	async (
@@ -93,7 +97,7 @@ export const deleteCalculation = createAsyncThunk(
 	}
 )
 
-// ИСПРАВЛЕНИЕ: Добавляем действие для обновления заявки
+// Асинхронное действие для обновления заявки
 export const updateMedCard = createAsyncThunk(
 	'medCart/updateMedCard',
 	async (
@@ -118,7 +122,7 @@ export const updateMedCard = createAsyncThunk(
 	}
 )
 
-// ИСПРАВЛЕНИЕ: Добавляем действие для формирования заявки
+// Асинхронное действие для формирования заявки
 export const finalizeMedCard = createAsyncThunk(
 	'medCart/finalizeMedCard',
 	async (cardId: number, { rejectWithValue }) => {
@@ -134,7 +138,7 @@ export const finalizeMedCard = createAsyncThunk(
 	}
 )
 
-// ИСПРАВЛЕНИЕ: Добавляем действие для удаления заявки
+// Асинхронное действие для удаления заявки
 export const deleteMedCard = createAsyncThunk(
 	'medCart/deleteMedCard',
 	async (cardId: number, { rejectWithValue }) => {
@@ -177,6 +181,7 @@ const medCartSlice = createSlice({
 			})
 			.addCase(getCartIcon.rejected, (state, action) => {
 				state.loading = false
+				// При ошибке устанавливаем пустую корзину
 				state.cartId = null
 				state.itemCount = 0
 				state.error = action.payload as string
@@ -188,7 +193,7 @@ const medCartSlice = createSlice({
 			})
 			.addCase(addToCart.fulfilled, (state, action) => {
 				state.loading = false
-				state.cartId = action.payload.med_card_id
+				state.cartId = action.payload.med_card_id || state.cartId
 				state.itemCount += 1
 				state.error = null
 			})
@@ -203,8 +208,21 @@ const medCartSlice = createSlice({
 			})
 			.addCase(getMedCardDetails.fulfilled, (state, action) => {
 				state.loading = false
-				state.cartId = action.payload.id
-				state.calculations = action.payload.med_calculations || []
+				// ИСПРАВЛЕНИЕ: Гарантируем что id будет number
+				state.cartId = action.payload.id ? Number(action.payload.id) : null
+				// ИСПРАВЛЕНИЕ: Преобразуем медикалькуляции в правильный тип
+				const calculations: MedCalculation[] = (
+					action.payload.med_calculations || []
+				).map(calc => ({
+					pvlc_med_formula_id: calc.pvlc_med_formula_id || 0,
+					title: calc.title || '',
+					description: calc.description || '',
+					formula: calc.formula || '',
+					image_url: calc.image_url || '',
+					input_height: calc.input_height || 0,
+					final_result: calc.final_result || 0,
+				}))
+				state.calculations = calculations
 				state.error = null
 			})
 			.addCase(getMedCardDetails.rejected, (state, action) => {

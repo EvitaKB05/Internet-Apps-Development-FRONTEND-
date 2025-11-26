@@ -39,64 +39,31 @@ func (a *API) DeleteMedMmPvlcCalculation(c *gin.Context) {
 
 // PUT /api/med-mm-pvlc-calculations - изменение м-м
 func (a *API) UpdateMedMmPvlcCalculation(c *gin.Context) {
-    var request ds.UpdateMedMmPvlcCalculationAPIRequest // ИСПОЛЬЗУЕМ НОВУЮ СТРУКТУРУ
-    
-    if err := c.ShouldBindJSON(&request); err != nil {
-        logrus.Error("JSON bind error: ", err)
-        a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса: "+err.Error())
-        return
-    }
+	var request ds.UpdateMedMmPvlcCalculationAPIRequest // ИСПОЛЬЗУЕМ НОВУЮ СТРУКТУРУ
 
-    // Проверяем что заявка существует и это черновик
-    card, err := a.repo.GetPvlcMedCardByID(request.CardID)
-    if err != nil || card.Status != ds.PvlcMedCardStatusDraft {
-        a.errorResponse(c, http.StatusBadRequest, "Неверная заявка")
-        return
-    }
+	if err := c.ShouldBindJSON(&request); err != nil {
+		logrus.Error("JSON bind error: ", err)
+		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса: "+err.Error())
+		return
+	}
 
-    if err := a.repo.UpdateMedMmPvlcCalculation(request.CardID, request.PvlcMedFormulaID, request.Data.InputHeight); err != nil {
-        logrus.Error("Error updating med mm pvlc calculation: ", err)
-        a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления расчета")
-        return
-    }
+	// Проверяем что заявка существует и это черновик
+	card, err := a.repo.GetPvlcMedCardByID(request.CardID)
+	if err != nil || card.Status != ds.PvlcMedCardStatusDraft {
+		a.errorResponse(c, http.StatusBadRequest, "Неверная заявка")
+		return
+	}
 
-    a.successResponse(c, gin.H{"message": "Расчет успешно обновлен"})
+	if err := a.repo.UpdateMedMmPvlcCalculation(request.CardID, request.PvlcMedFormulaID, request.Data.InputHeight); err != nil {
+		logrus.Error("Error updating med mm pvlc calculation: ", err)
+		a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления расчета")
+		return
+	}
+
+	a.successResponse(c, gin.H{"message": "Расчет успешно обновлен"})
 }
 
 // Домен: Пользователи (MedUsers)
-
-// POST /api/med-users/register - регистрация
-func (a *API) RegisterMedUser(c *gin.Context) {
-	var request ds.MedUserRegistrationRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
-		return
-	}
-
-	// Проверяем что логин не занят
-	existing, _ := a.repo.GetMedUserByLogin(request.Login)
-	if existing != nil {
-		a.errorResponse(c, http.StatusBadRequest, "Пользователь с таким логином уже существует")
-		return
-	}
-
-	user := ds.MedUser{
-		Login:       request.Login,
-		Password:    request.Password, // В реальном приложении нужно хэшировать!
-		IsModerator: request.IsModerator,
-	}
-
-	if err := a.repo.CreateMedUser(&user); err != nil {
-		logrus.Error("Error creating med user: ", err)
-		a.errorResponse(c, http.StatusInternalServerError, "Ошибка регистрации")
-		return
-	}
-
-	a.successResponse(c, gin.H{
-		"message": "Пользователь успешно зарегистрирован",
-		"user_id": user.ID,
-	})
-}
 
 // GET /api/med-users/profile - профиль пользователя
 func (a *API) GetMedUserProfile(c *gin.Context) {
@@ -131,7 +98,7 @@ func (a *API) UpdateMedUserProfile(c *gin.Context) {
 
 	user, err := a.repo.GetMedUserByID(userID)
 	if err != nil {
-		a.errorResponse(c, http.StatusNotFound, "Пользователь не найден")
+		a.errorResponse(c, http.StatusNotFound, "Пользователь не найдена")
 		return
 	}
 

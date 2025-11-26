@@ -12,6 +12,49 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// RegisterMedUser godoc
+// @Summary Регистрация пользователя
+// @Description Создает нового пользователя в системе
+// @Tags med_auth
+// @Accept json
+// @Produce json
+// @Param request body ds.MedUserRegistrationRequest true "Данные для регистрации"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Router /api/auth/register [post]
+func (a *API) RegisterMedUser(c *gin.Context) {
+	var request ds.MedUserRegistrationRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
+		return
+	}
+
+	// Проверяем что логин не занят
+	existing, _ := a.repo.GetMedUserByLogin(request.Login)
+	if existing != nil {
+		a.errorResponse(c, http.StatusBadRequest, "Пользователь с таким логином уже существует")
+		return
+	}
+
+	user := ds.MedUser{
+		Login:       request.Login,
+		Password:    request.Password,
+		IsModerator: request.IsModerator,
+		CreatedBy:   1, // Системный пользователь
+	}
+
+	if err := a.repo.CreateMedUser(&user); err != nil {
+		logrus.Error("Error creating med user: ", err)
+		a.errorResponse(c, http.StatusInternalServerError, "Ошибка регистрации")
+		return
+	}
+
+	a.successResponse(c, gin.H{
+		"message": "Пользователь успешно зарегистрирован",
+		"user_id": user.ID,
+	})
+}
+
 // LoginRequest - структура запроса для аутентификации
 // ДОБАВЛЕНО ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4
 type LoginRequest struct {

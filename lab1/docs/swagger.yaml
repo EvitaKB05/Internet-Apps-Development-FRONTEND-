@@ -82,6 +82,18 @@ definitions:
       title:
         type: string
     type: object
+  ds.MedUserRegistrationRequest:
+    properties:
+      is_moderator:
+        type: boolean
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
   ds.MedUserResponse:
     properties:
       id:
@@ -265,6 +277,35 @@ paths:
       summary: Получение профиля пользователя
       tags:
       - med_auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создает нового пользователя в системе
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.MedUserRegistrationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Регистрация пользователя
+      tags:
+      - med_auth
   /api/med_card/icon:
     get:
       description: Возвращает информацию о корзине пользователя (количество items)
@@ -275,14 +316,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/ds.CartIconResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
       summary: Получение иконки корзины
       tags:
       - med_card

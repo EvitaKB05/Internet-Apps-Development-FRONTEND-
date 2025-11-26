@@ -55,6 +55,12 @@ export interface DsMedMmPvlcCalculationResponse {
   title?: string;
 }
 
+export interface DsMedUserRegistrationRequest {
+  is_moderator?: boolean;
+  login: string;
+  password: string;
+}
+
 export interface DsMedUserResponse {
   id?: number;
   is_moderator?: boolean;
@@ -347,19 +353,38 @@ export class Api<
       }),
 
     /**
+     * @description Создает нового пользователя в системе
+     *
+     * @tags med_auth
+     * @name AuthRegisterCreate
+     * @summary Регистрация пользователя
+     * @request POST:/api/auth/register
+     */
+    authRegisterCreate: (
+      request: DsMedUserRegistrationRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, string>>({
+        path: `/api/auth/register`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Возвращает информацию о корзине пользователя (количество items)
      *
      * @tags med_card
      * @name MedCardIconList
      * @summary Получение иконки корзины
      * @request GET:/api/med_card/icon
-     * @secure
      */
     medCardIconList: (params: RequestParams = {}) =>
-      this.request<DsCartIconResponse, Record<string, string>>({
+      this.request<DsCartIconResponse, any>({
         path: `/api/med_card/icon`,
         method: "GET",
-        secure: true,
         format: "json",
         ...params,
       }),

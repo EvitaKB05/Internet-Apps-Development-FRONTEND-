@@ -25,7 +25,7 @@ func NewRepository() (*Repository, error) {
 
 // ==================== МЕТОДЫ ДЛЯ HTML ИНТЕРФЕЙСА ====================
 
-// GetActivePvlcMedFormulas - гет активных формул ДЖЕЛ для HTML (бывший GetServices)
+// GetActivePvlcMedFormulas - гет активных формул ДЖЕЛ для HTML
 func (r *Repository) GetActivePvlcMedFormulas() ([]ds.PvlcMedFormula, error) {
 	var formulas []ds.PvlcMedFormula
 	err := r.db.Where("is_active = ?", true).Find(&formulas).Error
@@ -35,7 +35,7 @@ func (r *Repository) GetActivePvlcMedFormulas() ([]ds.PvlcMedFormula, error) {
 	return formulas, nil
 }
 
-// GetPvlcMedFormulasByTitle - поиск формул по названию для HTML (бывший GetServicesByTitle)
+// GetPvlcMedFormulasByTitle - поиск формул по названию для HTML
 func (r *Repository) GetPvlcMedFormulasByTitle(title string) ([]ds.PvlcMedFormula, error) {
 	var formulas []ds.PvlcMedFormula
 	err := r.db.Where("is_active = ? AND title ILIKE ?", true, "%"+title+"%").Find(&formulas).Error
@@ -45,7 +45,7 @@ func (r *Repository) GetPvlcMedFormulasByTitle(title string) ([]ds.PvlcMedFormul
 	return formulas, nil
 }
 
-// GetPvlcMedFormulaByIDForHTML - гет формулы по ID для HTML интерфейса (бывший GetService)
+// GetPvlcMedFormulaByIDForHTML - гет формулы по ID для HTML интерфейса
 func (r *Repository) GetPvlcMedFormulaByIDForHTML(id int) (ds.PvlcMedFormula, error) {
 	var formula ds.PvlcMedFormula
 	err := r.db.Where("is_active = ? AND id = ?", true, id).First(&formula).Error
@@ -57,19 +57,20 @@ func (r *Repository) GetPvlcMedFormulaByIDForHTML(id int) (ds.PvlcMedFormula, er
 
 // ==================== МЕТОДЫ ДЛЯ МЕДИЦИНСКИХ КАРТ (HTML) ====================
 
-// GetOrCreateDraftPvlcMedCard - находим или создаем черновик медкарты для HTML (бывший GetOrCreateDraftCard)
+// GetOrCreateDraftPvlcMedCard - находим или создаем черновик медкарты для HTML
 func (r *Repository) GetOrCreateDraftPvlcMedCard(userID uint) (*ds.PvlcMedCard, error) {
 	var card ds.PvlcMedCard
 
-	// пытаемся найти существующий черновик
-	err := r.db.Where("status = ?", ds.PvlcMedCardStatusDraft).First(&card).Error
+	// пытаемся найти существующий черновик для пользователя
+	err := r.db.Where("status = ? AND user_id = ?", ds.PvlcMedCardStatusDraft, userID).First(&card).Error
 
 	if err != nil {
 		// если черновика нет - создаем новый
 		card = ds.PvlcMedCard{
 			Status:      ds.PvlcMedCardStatusDraft,
-			PatientName: "Врач",        // временное значение
+			PatientName: "Пациент",     // временное значение
 			DoctorName:  "Иванов И.И.", // значение по умолчанию
+			UserID:      userID,        // устанавливаем владельца
 		}
 
 		err = r.db.Create(&card).Error
@@ -81,7 +82,7 @@ func (r *Repository) GetOrCreateDraftPvlcMedCard(userID uint) (*ds.PvlcMedCard, 
 	return &card, nil
 }
 
-// GetDraftPvlcMedCardID - получаем ID черновика медкарты для HTML (бывший GetDraftCardID)
+// GetDraftPvlcMedCardID - получаем ID черновика медкарты для HTML
 func (r *Repository) GetDraftPvlcMedCardID() (uint, error) {
 	var card ds.PvlcMedCard
 	err := r.db.Where("status = ?", ds.PvlcMedCardStatusDraft).First(&card).Error
@@ -91,7 +92,7 @@ func (r *Repository) GetDraftPvlcMedCardID() (uint, error) {
 	return card.ID, nil
 }
 
-// CheckPvlcMedCardExists - проверяем существование медкарты для HTML (бывший CheckCardExists)
+// CheckPvlcMedCardExists - проверяем существование медкарты для HTML
 func (r *Repository) CheckPvlcMedCardExists(cardID uint) (bool, error) {
 	var card ds.PvlcMedCard
 	err := r.db.Where("id = ? AND status != ?", cardID, ds.PvlcMedCardStatusDeleted).First(&card).Error
@@ -104,7 +105,7 @@ func (r *Repository) CheckPvlcMedCardExists(cardID uint) (bool, error) {
 
 // ==================== МЕТОДЫ ДЛЯ РАСЧЕТОВ В КАРТЕ (HTML) ====================
 
-// AddPvlcMedFormulaToCard - добавить формулу в медкарту для HTML (бывший AddCalculationToCard)
+// AddPvlcMedFormulaToCard - добавить формулу в медкарту для HTML
 func (r *Repository) AddPvlcMedFormulaToCard(cardID uint, formulaID uint) error {
 	// проверяем дубликаты
 	var existingLink ds.MedMmPvlcCalculation
@@ -119,14 +120,14 @@ func (r *Repository) AddPvlcMedFormulaToCard(cardID uint, formulaID uint) error 
 	link := ds.MedMmPvlcCalculation{
 		PvlcMedCardID:    cardID,
 		PvlcMedFormulaID: formulaID,
-		InputHeight:      0, // пока 0
-		FinalResult:      0, // пока 0
+		InputHeight:      170, // значение по умолчанию
+		FinalResult:      0,   // пока 0
 	}
 
 	return r.db.Create(&link).Error
 }
 
-// GetPvlcMedFormulasCount - гет кол-во формул в корзинке для HTML (бывший GetCalculationsCount)
+// GetPvlcMedFormulasCount - гет кол-во формул в корзинке для HTML
 func (r *Repository) GetPvlcMedFormulasCount() (int, error) {
 	var count int64
 
@@ -147,7 +148,7 @@ func (r *Repository) GetPvlcMedFormulasCount() (int, error) {
 	return int(count), nil
 }
 
-// GetPvlcMedFormulasInCard - гет формул в карте для HTML (старый метод для обратной совместимости) (бывший GetCalculation)
+// GetPvlcMedFormulasInCard - гет формул в карте для HTML (старый метод для обратной совместимости)
 func (r *Repository) GetPvlcMedFormulasInCard() ([]ds.PvlcMedFormula, error) {
 	// найти черновик
 	var card ds.PvlcMedCard
@@ -171,7 +172,7 @@ func (r *Repository) GetPvlcMedFormulasInCard() ([]ds.PvlcMedFormula, error) {
 	return formulas, nil
 }
 
-// GetPvlcMedFormulasByCardIDForHTML - гет формул по ID карты для HTML (бывший GetCalculationByCardID)
+// GetPvlcMedFormulasByCardIDForHTML - гет формул по ID карты для HTML
 func (r *Repository) GetPvlcMedFormulasByCardIDForHTML(cardID uint) ([]ds.PvlcMedFormula, error) {
 	// проверяем существование карты
 	var card ds.PvlcMedCard
@@ -195,7 +196,7 @@ func (r *Repository) GetPvlcMedFormulasByCardIDForHTML(cardID uint) ([]ds.PvlcMe
 	return formulas, nil
 }
 
-// GetPvlcMedFormulasWithHeight - формулы с параметром роста для HTML (бывший GetCalculationWithHeight)
+// GetPvlcMedFormulasWithHeight - формулы с параметром роста для HTML
 func (r *Repository) GetPvlcMedFormulasWithHeight() ([]ds.PvlcMedFormulaWithHeight, error) {
 	// найти черновик
 	var card ds.PvlcMedCard
@@ -222,9 +223,8 @@ func (r *Repository) GetPvlcMedFormulasWithHeight() ([]ds.PvlcMedFormulaWithHeig
 
 // ==================== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ (HTML) ====================
 
-// GetAvailableDoctors - получаем список доступных врачей для HTML (без изменений)
+// GetAvailableDoctors - получаем список доступных врачей для HTML
 func (r *Repository) GetAvailableDoctors() []string {
-	// возвращаем список врачей (можно потом брать из отдельной таблицы)
 	return []string{
 		"Иванов Иван Иванович",
 		"Петрова Анна Сергеевна",
@@ -232,7 +232,7 @@ func (r *Repository) GetAvailableDoctors() []string {
 	}
 }
 
-// GetCurrentDoctor - получаем текущего врача для черновика для HTML (без изменений)
+// GetCurrentDoctor - получаем текущего врача для черновика для HTML
 func (r *Repository) GetCurrentDoctor() (string, error) {
 	var card ds.PvlcMedCard
 	err := r.db.Where("status = ?", ds.PvlcMedCardStatusDraft).First(&card).Error
@@ -243,7 +243,7 @@ func (r *Repository) GetCurrentDoctor() (string, error) {
 	return card.DoctorName, nil
 }
 
-// DeleteDraftPvlcMedCard - удаляем черновик медкарты для HTML (бывший DeleteDraftCard)
+// DeleteDraftPvlcMedCard - удаляем черновик медкарты для HTML
 func (r *Repository) DeleteDraftPvlcMedCard() error {
 	return r.db.Exec("UPDATE pvlc_med_cards SET status = ? WHERE status = ?",
 		ds.PvlcMedCardStatusDeleted, ds.PvlcMedCardStatusDraft).Error

@@ -154,13 +154,52 @@
                 }
             }
         },
-        "/api/med_card/icon": {
-            "get": {
-                "security": [
+        "/api/auth/register": {
+            "post": {
+                "description": "Создает нового пользователя в системе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "med_auth"
+                ],
+                "summary": "Регистрация пользователя",
+                "parameters": [
                     {
-                        "BearerAuth": []
+                        "description": "Данные для регистрации",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ds.MedUserRegistrationRequest"
+                        }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/med_card/icon": {
+            "get": {
                 "description": "Возвращает информацию о корзине пользователя (количество items)",
                 "produces": [
                     "application/json"
@@ -174,15 +213,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ds.CartIconResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     }
                 }
@@ -1149,6 +1179,24 @@
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "ds.MedUserRegistrationRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "is_moderator": {
+                    "type": "boolean"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
