@@ -1,3 +1,4 @@
+//src/mock/data.ts
 import type { PvlcMedFormula } from '../types'
 
 export const FORMULAS_MOCK: PvlcMedFormula[] = [

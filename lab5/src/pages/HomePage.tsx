@@ -1,3 +1,4 @@
+//src/pages/HomePage.tsx
 import React from 'react'
 import { Container, Row, Col } from 'react-bootstrap'
 import Breadcrumbs from '../components/Breadcrumbs'

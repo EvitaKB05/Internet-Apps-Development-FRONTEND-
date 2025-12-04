@@ -1,3 +1,4 @@
+//src/components/FilterPanel.tsx
 import React from 'react'
 import { Form, Row, Col, Button } from 'react-bootstrap'
 import type { PvlcMedFormulaFilter } from '../types'

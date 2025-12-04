@@ -1,3 +1,4 @@
+//src/components/FormulaCard.tsx
 import React from 'react'
 import type { PvlcMedFormula } from '../types'
 import { useNavigate } from 'react-router-dom'

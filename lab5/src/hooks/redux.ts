@@ -1,3 +1,4 @@
+//src/hooks/redux.ts
 import {
 	useDispatch,
 	useSelector,

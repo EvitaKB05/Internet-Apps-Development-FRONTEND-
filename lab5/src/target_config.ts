@@ -1,12 +1,10 @@
+//src/target_config.ts
 // Конфигурация для определения среды выполнения и URL
-
 // Безопасная проверка на Tauri environment
 const isTauri = false
-
 // Базовые URL для API и изображений
 // ДЛЯ TAURI: используем прямой IP адрес бэкенда
 // ДЛЯ WEB: используем прокси или относительные пути
-
 // ВАШ IP: 192.168.1.14
 export const API_BASE_TAURI = 'http://localhost:8080'
 export const API_BASE_WEB = '/api'
