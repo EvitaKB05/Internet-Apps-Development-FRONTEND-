@@ -32,30 +32,8 @@ func debugHeadersMiddleware() gin.HandlerFunc {
 	}
 }
 
-// corsMiddleware добавляет CORS заголовки
-func corsMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		origin := c.Request.Header.Get("Origin")
-		if origin == "" {
-			origin = "*"
-		}
-
-		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Accept, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	}
-}
-
 // StartServer запускает HTTP сервер
+// ПОЛНОСТЬЮ ПЕРЕПИСАН ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4
 func StartServer() {
 	log.Println("Starting server")
 
@@ -84,18 +62,15 @@ func StartServer() {
 
 	handler := handler.NewHandler(repo)
 
-	// Передаем Redis клиент при создании API
+	// ИСПРАВЛЕНО: передаем Redis клиент при создании API
 	api := NewAPI(repo, redisClient)
 
 	r := gin.Default()
 
-	// CORS middleware ДО всех других middleware
-	r.Use(corsMiddleware())
-
-	// Middleware для отладки заголовков
+	// ДОБАВЛЕНО: middleware для отладки заголовков
 	r.Use(debugHeadersMiddleware())
 
-	// Swagger документация
+	// Swagger документация - ДОБАВЛЕНО ДЛЯ ЛР4
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// HTML routes (сохраняем существующие)
@@ -112,27 +87,29 @@ func StartServer() {
 	r.POST("/pvlc_patient/:id/add", handler.AddPvlcMedFormulaToCart)
 	r.POST("/pvlc_med_calc/delete", handler.DeletePvlcMedCart)
 
-	// API Routes - убираем дублирование /api в группе
+	// API Routes - ИСПРАВЛЕНО: убираем дублирование /api в группе
+	// КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: применяем AuthMiddleware ко всей группе API
 	apiGroup := r.Group("/api")
+	apiGroup.Use(auth.AuthMiddleware()) // ДОБАВЛЕНО: применяем аутентификацию ко всем API запросам
 	{
 		// Public routes (не требуют аутентификации)
 		public := apiGroup.Group("")
 		{
 			public.POST("/auth/login", api.Login)                       // Аутентификация
-			public.POST("/auth/register", api.RegisterMedUser)          // Регистрация
 			public.GET("/pvlc-med-formulas", api.GetPvlcMedFormulas)    // Список формул
 			public.GET("/pvlc-med-formulas/:id", api.GetPvlcMedFormula) // Конкретная формула
-			public.GET("/med_card/icon", api.GetCartIcon)               // Иконка корзины
 		}
 
 		// Auth required routes (требуют аутентификации)
 		authRequired := apiGroup.Group("")
-		authRequired.Use(auth.AuthMiddleware()) // Применяем аутентификацию
-		authRequired.Use(auth.RequireAuth())    // Требует валидный JWT токен
+		authRequired.Use(auth.RequireAuth()) // Требует валидный JWT токен
 		{
 			// Auth routes
 			authRequired.POST("/auth/logout", api.Logout)     // Выход
 			authRequired.GET("/auth/profile", api.GetProfile) // Профиль
+
+			// Cart routes
+			authRequired.GET("/med_card/icon", api.GetCartIcon) // Иконка корзины
 
 			// Pvlc Med Formulas routes
 			authRequired.POST("/pvlc-med-formulas/:id/add-to-cart", api.AddPvlcMedFormulaToCart) // Добавление в корзину
@@ -168,15 +145,12 @@ func StartServer() {
 			moderator.PUT("/pvlc-med-cards/:id/complete", api.CompletePvlcMedCard) // Завершение/отклонение заявки
 
 			// User management
-			//moderator.POST("/med-users/register", api.RegisterMedUser) // Регистрация пользователя (дублирующий endpoint для модераторов)
+			moderator.POST("/med-users/register", api.RegisterMedUser) // Регистрация пользователя
 		}
 	}
 
 	log.Println("Server starting on :8080")
 	log.Println("Swagger UI available at: http://localhost:8080/swagger/index.html")
-	log.Println("Available API methods:")
-	log.Printf("- RegisterMedUser: %v\n", api.RegisterMedUser != nil)
-	log.Printf("- Login: %v\n", api.Login != nil)
 	r.Run(":8080")
 	log.Println("Server down")
 }
