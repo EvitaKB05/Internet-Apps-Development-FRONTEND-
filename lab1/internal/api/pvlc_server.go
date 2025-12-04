@@ -98,6 +98,7 @@ func StartServer() {
 			public.POST("/auth/login", api.Login)                       // Аутентификация
 			public.GET("/pvlc-med-formulas", api.GetPvlcMedFormulas)    // Список формул
 			public.GET("/pvlc-med-formulas/:id", api.GetPvlcMedFormula) // Конкретная формула
+			public.POST("/med-users/register", api.RegisterMedUser)     // Регистрация пользователя
 		}
 
 		// Auth required routes (требуют аутентификации)
@@ -145,7 +146,7 @@ func StartServer() {
 			moderator.PUT("/pvlc-med-cards/:id/complete", api.CompletePvlcMedCard) // Завершение/отклонение заявки
 
 			// User management
-			moderator.POST("/med-users/register", api.RegisterMedUser) // Регистрация пользователя
+			//moderator.POST("/med-users/register", api.RegisterMedUser) // Регистрация пользователя
 		}
 	}
 

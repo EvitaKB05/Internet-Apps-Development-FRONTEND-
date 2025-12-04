@@ -39,32 +39,45 @@ func (a *API) DeleteMedMmPvlcCalculation(c *gin.Context) {
 
 // PUT /api/med-mm-pvlc-calculations - изменение м-м
 func (a *API) UpdateMedMmPvlcCalculation(c *gin.Context) {
-    var request ds.UpdateMedMmPvlcCalculationAPIRequest // ИСПОЛЬЗУЕМ НОВУЮ СТРУКТУРУ
-    
-    if err := c.ShouldBindJSON(&request); err != nil {
-        logrus.Error("JSON bind error: ", err)
-        a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса: "+err.Error())
-        return
-    }
+	var request ds.UpdateMedMmPvlcCalculationAPIRequest // ИСПОЛЬЗУЕМ НОВУЮ СТРУКТУРУ
 
-    // Проверяем что заявка существует и это черновик
-    card, err := a.repo.GetPvlcMedCardByID(request.CardID)
-    if err != nil || card.Status != ds.PvlcMedCardStatusDraft {
-        a.errorResponse(c, http.StatusBadRequest, "Неверная заявка")
-        return
-    }
+	if err := c.ShouldBindJSON(&request); err != nil {
+		logrus.Error("JSON bind error: ", err)
+		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса: "+err.Error())
+		return
+	}
 
-    if err := a.repo.UpdateMedMmPvlcCalculation(request.CardID, request.PvlcMedFormulaID, request.Data.InputHeight); err != nil {
-        logrus.Error("Error updating med mm pvlc calculation: ", err)
-        a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления расчета")
-        return
-    }
+	// Проверяем что заявка существует и это черновик
+	card, err := a.repo.GetPvlcMedCardByID(request.CardID)
+	if err != nil || card.Status != ds.PvlcMedCardStatusDraft {
+		a.errorResponse(c, http.StatusBadRequest, "Неверная заявка")
+		return
+	}
 
-    a.successResponse(c, gin.H{"message": "Расчет успешно обновлен"})
+	if err := a.repo.UpdateMedMmPvlcCalculation(request.CardID, request.PvlcMedFormulaID, request.Data.InputHeight); err != nil {
+		logrus.Error("Error updating med mm pvlc calculation: ", err)
+		a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления расчета")
+		return
+	}
+
+	a.successResponse(c, gin.H{"message": "Расчет успешно обновлен"})
 }
 
 // Домен: Пользователи (MedUsers)
 
+// RegisterMedUser godoc
+// @Summary Регистрация нового пользователя
+// @Description Создает нового пользователя в системе (только для модераторов)
+// @Tags med_users
+// @Accept json
+// @Produce json
+// @Param request body ds.MedUserRegistrationRequest true "Данные для регистрации"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/med-users/register [post]
+// @Security BearerAuth
 // POST /api/med-users/register - регистрация
 func (a *API) RegisterMedUser(c *gin.Context) {
 	var request ds.MedUserRegistrationRequest
