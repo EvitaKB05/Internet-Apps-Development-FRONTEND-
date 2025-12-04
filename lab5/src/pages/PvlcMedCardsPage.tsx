@@ -6,7 +6,7 @@ import {
 	Alert,
 	Spinner,
 	Badge,
-	Button,
+	//Button,
 } from 'react-bootstrap'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -91,9 +91,9 @@ const PvlcMedCardsPage: React.FC = () => {
 				) : cards.length === 0 ? (
 					<Alert variant='info'>
 						У вас пока нет заявок.{' '}
-						<Button variant='link' onClick={() => navigate('/pvlc_patients')}>
+						{/* <Button variant='link' onClick={() => navigate('/pvlc_patients')}>
 							Создать первую заявку
-						</Button>
+						</Button> */}
 					</Alert>
 				) : (
 					<Table responsive striped bordered hover>

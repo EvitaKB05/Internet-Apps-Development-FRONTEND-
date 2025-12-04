@@ -10,6 +10,7 @@ import PvlcLoginPage from './pages/PvlcLoginPage' // НОВЫЙ ИМПОРТ
 import PvlcRegisterPage from './pages/PvlcRegisterPage' // НОВЫЙ ИМПОРТ
 import PvlcMedCardsPage from './pages/PvlcMedCardsPage' // НОВЫЙ ИМПОРТ
 import PvlcMedCardPage from './pages/PvlcMedCardPage' // НОВЫЙ ИМПОРТ
+
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css'
 

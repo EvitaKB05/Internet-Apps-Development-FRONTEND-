@@ -46,11 +46,11 @@ export const loginUser = createAsyncThunk(
 			const response = await api.api.authLoginCreate(credentials)
 			const data = response.data as LoginResponse
 
-			// ВАЖНО: Сохраняем токен в localStorage
+			//  токен в localStorage
 			localStorage.setItem('med_token', data.token)
 			localStorage.setItem('med_user', JSON.stringify(data.user))
 
-			console.log('Token saved to localStorage:', data.token) // ДЛЯ ОТЛАДКИ
+			console.log('Token saved to localStorage:', data.token) //
 
 			return data
 		} catch (error: unknown) {
