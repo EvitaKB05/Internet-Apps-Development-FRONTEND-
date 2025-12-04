@@ -7,7 +7,9 @@ import (
 	"lab1/internal/redis"
 	"log"
 	"strings"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
@@ -66,6 +68,15 @@ func StartServer() {
 	api := NewAPI(repo, redisClient)
 
 	r := gin.Default()
+	// ДОБАВИТЬ: настройка CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:8080"}, // Разрешенные домены
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// ДОБАВЛЕНО: middleware для отладки заголовков
 	r.Use(debugHeadersMiddleware())
