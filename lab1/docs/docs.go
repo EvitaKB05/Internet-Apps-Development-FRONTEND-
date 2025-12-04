@@ -229,11 +229,6 @@ const docTemplate = `{
         },
         "/api/med_card/icon": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Возвращает информацию о корзине пользователя (количество items)",
                 "produces": [
                     "application/json"

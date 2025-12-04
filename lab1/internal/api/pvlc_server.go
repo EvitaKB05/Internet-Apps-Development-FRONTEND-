@@ -98,7 +98,8 @@ func StartServer() {
 			public.POST("/auth/login", api.Login)                       // Аутентификация
 			public.GET("/pvlc-med-formulas", api.GetPvlcMedFormulas)    // Список формул
 			public.GET("/pvlc-med-formulas/:id", api.GetPvlcMedFormula) // Конкретная формула
-			public.POST("/med-users/register", api.RegisterMedUser)     // Регистрация пользователя
+			public.POST("/med-users/register", api.RegisterMedUser)
+			public.GET("/med_card/icon", api.GetCartIcon) // Регистрация пользователя
 		}
 
 		// Auth required routes (требуют аутентификации)
@@ -110,7 +111,7 @@ func StartServer() {
 			authRequired.GET("/auth/profile", api.GetProfile) // Профиль
 
 			// Cart routes
-			authRequired.GET("/med_card/icon", api.GetCartIcon) // Иконка корзины
+			//authRequired.GET("/med_card/icon", api.GetCartIcon) // Иконка корзины
 
 			// Pvlc Med Formulas routes
 			authRequired.POST("/pvlc-med-formulas/:id/add-to-cart", api.AddPvlcMedFormulaToCart) // Добавление в корзину

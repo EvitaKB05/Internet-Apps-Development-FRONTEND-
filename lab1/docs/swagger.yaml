@@ -336,8 +336,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-      security:
-      - BearerAuth: []
       summary: Получение иконки корзины
       tags:
       - med_card

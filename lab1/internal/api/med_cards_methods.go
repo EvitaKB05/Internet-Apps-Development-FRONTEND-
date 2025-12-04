@@ -21,17 +21,21 @@ import (
 // @Produce json
 // @Success 200 {object} ds.CartIconResponse
 // @Failure 401 {object} map[string]string
-// @Router /api/med_card/icon [get]
-// @Security BearerAuth
+// @Router /api/med_card/icon [get]// @Security BearerAuth
 func (a *API) GetCartIcon(c *gin.Context) {
-	// Проверка аутентификации выполняется в middleware RequireAuth
+	// Изменяем логику: если пользователь не авторизован, возвращаем пустую корзину
 	claims := auth.GetUserFromContext(c)
+
 	if claims == nil {
-		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		// Для неавторизованных пользователей возвращаем пустую корзину
+		a.successResponse(c, ds.CartIconResponse{
+			MedCardID:    0,
+			MedItemCount: 0,
+		})
 		return
 	}
 
-	// Получаем черновик для текущего пользователя
+	// Получаем черновик для текущего пользователя (старая логика для авторизованных)
 	card, err := a.repo.GetDraftPvlcMedCardByUserID(claims.UserID)
 	if err != nil {
 		// Если черновика нет - возвращаем пустую корзину
